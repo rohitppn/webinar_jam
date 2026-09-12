@@ -22,11 +22,38 @@ export function buildRoutes() {
   const r = express.Router()
 
   // ---------- WebinarJam webhook (no basic-auth; guarded by token) ----------
-  r.all('/webhook/webinarjam', (req, res) => {
-    const token = req.query.token || req.body?.token || req.get('x-webhook-token')
-    if (token !== config.webhookToken) return res.status(401).json({ ok: false, error: 'bad token' })
-
+  // Accept the token from the query string, the body, a header, or the path — integration
+  // tools vary in what they preserve, and a stripped query string should not look like silence.
+  const webhookHandler = (req, res) => {
+    const token = req.query.token || req.body?.token || req.get('x-webhook-token') || req.params.token
     const b = { ...(req.query || {}), ...(req.body || {}) }
+    // Record every hit, accepted or not, so a misconfigured sender is visible instead of invisible.
+    const hit = {
+      at: isoStamp(),
+      method: req.method,
+      ip: req.ip,
+      ua: (req.get('user-agent') || '').slice(0, 120),
+      contentType: req.get('content-type') || '',
+      queryKeys: Object.keys(req.query || {}),
+      bodyKeys: Object.keys(req.body || {}),
+      body: JSON.stringify(b).slice(0, 800),
+      result: ''
+    }
+    db.state.webhookHits = db.state.webhookHits || []
+
+    const finish = (result, status, payload) => {
+      hit.result = result
+      db.state.webhookHits.unshift(hit)
+      db.state.webhookHits = db.state.webhookHits.slice(0, 50)
+      save()
+      return res.status(status).json(payload)
+    }
+
+    if (token !== config.webhookToken) {
+      logOps('webhook_bad_token', `from ${req.ip} ua=${hit.ua.slice(0, 40)}`)
+      return finish('rejected: bad or missing token', 401, { ok: false, error: 'bad token' })
+    }
+
     const rawPhone = b.phone || b.phone_number || b.mobile || b.whatsapp || b.user_phone || b.telephone || b.number
     const rawName = b.first_name || b.firstname || b.name || b.full_name || b.user_name
     const email = b.email || b.user_email || ''
@@ -34,7 +61,7 @@ export function buildRoutes() {
 
     if (!phone) {
       logOps('webhook_bad_phone', JSON.stringify(b).slice(0, 400))
-      return res.status(200).json({ ok: false, error: 'no usable phone', received: b })
+      return finish('rejected: no usable phone field', 200, { ok: false, error: 'no usable phone', received: b })
     }
 
     const { contact, created } = db.upsertContact(phone, {
@@ -47,8 +74,14 @@ export function buildRoutes() {
     const q = enqueueInstant(contact, 'M1')
     syncContact(contact)
     logOps(created ? 'registration' : 'registration_duplicate', `${phone} ${contact.first_name}`)
-    res.json({ ok: true, phone, created, m1_queued: !!q })
-  })
+    return finish(`accepted: ${phone}${created ? ' (new)' : ' (duplicate)'}`, 200, { ok: true, phone, created, m1_queued: !!q })
+  }
+
+  r.all('/webhook/webinarjam', webhookHandler)
+  r.all('/webhook/webinarjam/:token', webhookHandler)
+
+  // Recent webhook traffic — the first place to look when registrations are not arriving.
+  r.get('/api/webhook-hits', (req, res) => res.json(db.state.webhookHits || []))
 
   // ---------- everything below is admin (basic-auth applied in index.js) ----------
   r.get('/api/status', (req, res) => {
@@ -71,6 +104,7 @@ export function buildRoutes() {
       },
       settings: db.settings,
       unsetConfig: unsetConfigFields(),
+      webhookToken: config.webhookToken,
       stats: {
         contacts: contacts.length,
         confirmed: contacts.filter((c) => c.confirmed).length,

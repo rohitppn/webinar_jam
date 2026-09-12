@@ -130,6 +130,20 @@ async function refreshReplies() {
     </tr>`).join('') || '<tr><td class="mut">No replies yet.</td></tr>'
 }
 
+async function refreshHooks() {
+  const rows = await api('/api/webhook-hits')
+  $('#hookUrl').innerHTML = `<b>Your webhook URL</b><div class="mut" style="font-size:12px;margin:6px 0">Paste this into WebinarJam or Zapier. POST, JSON body, on registration.</div>
+    <code style="word-break:break-all">${location.origin}/webhook/webinarjam?token=${(S.webhookToken || '…')}</code>`
+  $('#hookTable').innerHTML = `<tr><th>When</th><th>Result</th><th>From</th><th>Fields received</th></tr>` +
+    rows.map((h) => `<tr>
+      <td class="mut" style="white-space:nowrap;font-size:12px">${new Date(h.at).toLocaleString()}</td>
+      <td><span class="tag" style="${h.result.startsWith('accepted') ? 'color:var(--accent)' : 'color:var(--bad)'}">${esc(h.result)}</span></td>
+      <td class="mut" style="font-size:11px">${esc(h.ua.slice(0, 40) || h.ip || '')}</td>
+      <td class="mut" style="font-size:12px;max-width:420px">${esc([...h.queryKeys, ...h.bodyKeys].join(', ') || '(none)')}
+        <div style="font-size:11px;opacity:.7">${esc((h.body || '').slice(0, 150))}</div></td>
+    </tr>`).join('') || '<tr><td class="mut">No webhook calls received yet — WebinarJam has not contacted the server.</td></tr>'
+}
+
 async function refreshShots() {
   const list = await api('/api/screenshots')
   $('#shotList').innerHTML = list.map((s) => `<div class="shot">
@@ -197,7 +211,8 @@ async function loadMessages() {
 
 function refreshTab(t) {
   ({ connect: refreshQR, contacts: refreshContacts, queue: refreshQueue, sent: refreshSent,
-     replies: refreshReplies, shots: refreshShots, timeline: refreshTimeline, dash: refreshOps }[t] || (() => {}))()
+     replies: refreshReplies, shots: refreshShots, hooks: refreshHooks,
+     timeline: refreshTimeline, dash: refreshOps }[t] || (() => {}))()
 }
 
 refreshStatus(); loadMessages(); refreshOps()

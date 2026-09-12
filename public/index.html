@@ -72,6 +72,7 @@
     <button data-t="replies">Replies</button>
     <button data-t="shots">Screenshots</button>
     <button data-t="timeline">Timeline</button>
+    <button data-t="hooks">Webhook</button>
     <button data-t="tools">Tools</button>
   </nav>
 
@@ -148,6 +149,16 @@
 
   <section id="timeline">
     <div class="card"><h2>Campaign timeline</h2><div style="overflow:auto"><table id="ttable"></table></div></div>
+  </section>
+
+  <section id="hooks">
+    <div class="card">
+      <h2>Webhook traffic — every attempt, accepted or rejected</h2>
+      <p class="mut">If registrations are not arriving, look here first. An empty list means WebinarJam
+      is not calling the server at all — the problem is in the WebinarJam or Zapier configuration, not here.</p>
+      <div id="hookUrl" class="card" style="background:var(--panel2);margin:14px 0"></div>
+      <div style="overflow:auto;max-height:55vh"><table id="hookTable"></table></div>
+    </div>
   </section>
 
   <section id="tools">
