@@ -1,7 +1,7 @@
 import { SCHEDULED, BY_ID } from './sequence.js'
 import { db, save } from './store.js'
 import { render, missingFields } from './render.js'
-import { now, sendTimeFor, isoStamp } from './time.js'
+import { now, sendTimeFor, isoStamp, fromISO } from './time.js'
 import { logOps } from './sheets.js'
 
 /** Enqueue everything that is due and not yet sent. Runs every minute and on boot. */
@@ -19,6 +19,10 @@ export function runScheduler() {
 
     for (const c of db.allContacts()) {
       if (c.optedOut || c.sent[msg.id]) continue
+      // A late registrant joins the sequence where it currently stands: M1 on registration,
+      // then only the messages that fall due afterwards. Anything already past is skipped
+      // permanently, never delivered late and never as a backlog burst.
+      if (c.registered_at && due < fromISO(c.registered_at)) continue
       if (!msg.audience(c)) continue
       const miss = missingFields(msg.body, c)
       if (miss.length) {

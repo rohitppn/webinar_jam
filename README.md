@@ -23,6 +23,18 @@ exactly as rule 6 of the doc requires.
 | **NA1 / P2–P7 / FC / D1 / D2** | Scheduled with the exact audiences from the doc. Booking exits P and D instantly. |
 | **STOP** | Removes the contact from everything within the minute, permanently, and logs it. |
 
+### Late registrants
+
+Someone who registers on Wednesday joins the sequence where it stands:
+
+- **M1 always sends**, within five minutes, whoever they are and whenever they register
+- Scheduled messages that fell due **before** they registered are skipped permanently —
+  they are never delivered late and never arrive as a backlog burst
+- From registration onwards they receive everything on the normal schedule
+
+So a Wednesday 8 PM registrant gets M1 immediately, skips M2–M5 entirely, and picks the
+sequence up at M6 on Thursday evening.
+
 ### Throttle (your rule)
 
 **30 messages, then a 60-minute rest**, then 30 more. Random 45–110 second gaps inside a burst,
