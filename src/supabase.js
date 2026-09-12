@@ -174,6 +174,33 @@ export async function sbFetchContacts() {
   }))
 }
 
+/** Row counts straight from Supabase, read with the service key so RLS doesn't hide them.
+ *  Lets the operator confirm the mirror is actually recording, not just accepting writes. */
+export async function sbCounts() {
+  if (!config.supabaseEnabled) return { enabled: false }
+  const out = { enabled: true, ready, tables: {} }
+  for (const [label, table] of Object.entries(TBL)) {
+    try {
+      const res = await fetch(`${config.supabaseUrl}/rest/v1/${table}?select=*`, {
+        method: 'HEAD',
+        headers: headers({ Prefer: 'count=exact', Range: '0-0' })
+      })
+      const cr = res.headers.get('content-range') || ''
+      out.tables[label] = cr.includes('/') ? Number(cr.split('/')[1]) : null
+    } catch (e) {
+      out.tables[label] = `error: ${e.message}`
+    }
+  }
+  return out
+}
+
+/** Most recent rows from one table, for spot-checking what was written. */
+export async function sbPeek(table, limit = 5) {
+  if (!config.supabaseEnabled || !TBL[table]) return []
+  const order = table === 'contacts' ? 'updated_at.desc' : 'ts.desc'
+  return (await req(`${TBL[table]}?select=*&order=${order}&limit=${limit}`)) || []
+}
+
 async function flush() {
   while (ready && pending.length) {
     const item = pending.shift()

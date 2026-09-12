@@ -10,7 +10,7 @@ import { runScheduler, enqueueInstant, timeline } from './scheduler.js'
 import { sendSS, handleInbound } from './inbound.js'
 import { normalisePhone, firstNameOf } from './phone.js'
 import { syncContact, sheetsState, logOps } from './sheets.js'
-import { supabaseState } from './supabase.js'
+import { supabaseState, sbCounts, sbPeek } from './supabase.js'
 import { now, isoStamp } from './time.js'
 import { MESSAGES, BY_ID } from './sequence.js'
 import { render, missingFields, unsetConfigFields } from './render.js'
@@ -114,6 +114,11 @@ export function buildRoutes() {
   r.get('/api/logs/inbound', (req, res) =>
     res.json(inboundLog({ q: req.query.q || '', limit: Number(req.query.limit) || 300 })))
   r.get('/api/logs/stats', (req, res) => res.json(messageStats()))
+  r.get('/api/supabase/counts', async (req, res) => res.json(await sbCounts()))
+  r.get('/api/supabase/peek/:table', async (req, res) => {
+    try { res.json(await sbPeek(req.params.table, Number(req.query.limit) || 5)) }
+    catch (e) { res.status(500).json({ error: e.message }) }
+  })
   r.get('/api/export/messages.csv', (req, res) =>
     res.type('text/csv').attachment('message-log.csv').send(
       toCsv(messageLog({ limit: 100000 }), ['timestamp', 'phone', 'first_name', 'message_id', 'status', 'error', 'text'])))
