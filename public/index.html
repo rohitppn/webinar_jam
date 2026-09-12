@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TheBroThing Sequencer</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
+    --ink:#e8eaed; --muted:#9aa3b2; --accent:#25d366; --warn:#f5a623; --bad:#ef4444; --link:#6ea8fe;
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:16px;align-items:center;flex-wrap:wrap;position:sticky;top:0;background:var(--bg);z-index:5}
+  h1{font-size:16px;margin:0;font-weight:600}
+  .pill{padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--panel2);border:1px solid var(--line)}
+  .pill.ok{background:rgba(37,211,102,.15);color:var(--accent);border-color:rgba(37,211,102,.35)}
+  .pill.warn{background:rgba(245,166,35,.15);color:var(--warn);border-color:rgba(245,166,35,.35)}
+  .pill.bad{background:rgba(239,68,68,.15);color:var(--bad);border-color:rgba(239,68,68,.35)}
+  main{padding:20px;max-width:1200px;margin:0 auto}
+  nav{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+  nav button{background:var(--panel);border:1px solid var(--line);color:var(--muted);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px}
+  nav button.on{background:var(--panel2);color:var(--ink);border-color:#42506b}
+  section{display:none}
+  section.on{display:block}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px}
+  .stat b{display:block;font-size:22px;font-weight:600}
+  .stat span{color:var(--muted);font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;color:var(--muted);font-weight:500;padding:8px;border-bottom:1px solid var(--line);font-size:12px}
+  td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:hover td{background:var(--panel2)}
+  input,textarea,select{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:7px;font:inherit;width:100%}
+  label{display:block;color:var(--muted);font-size:12px;margin:0 0 5px}
+  .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end}
+  button.act{background:var(--accent);color:#08160c;border:0;padding:9px 16px;border-radius:7px;font-weight:600;cursor:pointer}
+  button.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:8px 14px;border-radius:7px;cursor:pointer}
+  button.danger{background:rgba(239,68,68,.15);color:var(--bad);border:1px solid rgba(239,68,68,.35);padding:8px 14px;border-radius:7px;cursor:pointer}
+  code{background:var(--panel2);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--link)}
+  .qr{text-align:center;padding:20px}
+  .qr img{background:#fff;padding:12px;border-radius:10px;width:300px;height:300px}
+  .mut{color:var(--muted)}
+  .tag{display:inline-block;background:var(--panel2);border:1px solid var(--line);padding:1px 7px;border-radius:999px;font-size:11px;margin-right:4px}
+  .shot{display:flex;gap:14px;padding:12px;border:1px solid var(--line);border-radius:8px;margin-bottom:10px;background:var(--panel2)}
+  .shot img{width:120px;border-radius:6px;cursor:pointer}
+  pre{white-space:pre-wrap;background:var(--panel2);padding:12px;border-radius:8px;font-size:12px;margin:0;border:1px solid var(--line)}
+  .banner{background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.3);color:var(--warn);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>TheBroThing Sequencer</h1>
+  <span class="pill" id="waPill">…</span>
+  <span class="pill" id="sheetPill">…</span>
+  <span class="pill" id="throttlePill">…</span>
+  <span class="pill" id="clock"></span>
+  <span style="flex:1"></span>
+  <button class="ghost" id="pauseBtn">Pause</button>
+</header>
+<main>
+  <nav>
+    <button data-t="dash" class="on">Dashboard</button>
+    <button data-t="connect">Connect</button>
+    <button data-t="contacts">Contacts</button>
+    <button data-t="queue">Queue</button>
+    <button data-t="shots">Screenshots</button>
+    <button data-t="timeline">Timeline</button>
+    <button data-t="tools">Tools</button>
+  </nav>
+
+  <section id="dash" class="on">
+    <div id="warnings"></div>
+    <div class="card"><h2>Live</h2><div class="grid" id="stats"></div></div>
+    <div class="card"><h2>Dispatcher</h2><div id="disp" class="mut"></div></div>
+    <div class="card">
+      <h2>Merge fields — update by hand before each send</h2>
+      <div class="row">
+        <div><label>seats_left</label><input id="seats_left"></div>
+        <div><label>seats_taken (live WebinarJam count)</label><input id="seats_taken"></div>
+        <div><label>one_line_action (for P7)</label><input id="one_line_action"></div>
+        <div><button class="act" id="saveSettings">Save</button></div>
+      </div>
+    </div>
+    <div class="card"><h2>Recent activity</h2><div id="ops"></div></div>
+  </section>
+
+  <section id="connect">
+    <div class="card">
+      <h2>WhatsApp connection</h2>
+      <div class="qr" id="qrBox"></div>
+      <p class="mut">Open WhatsApp on the campaign phone → <b>Settings → Linked devices → Link a device</b> → scan. The session is stored on the Railway volume, so it survives redeploys. Do not link the same number anywhere else.</p>
+      <button class="danger" id="logoutBtn">Log out / re-scan</button>
+    </div>
+  </section>
+
+  <section id="contacts">
+    <div class="card">
+      <h2>Contacts</h2>
+      <div class="row" style="margin-bottom:12px">
+        <div><label>Search</label><input id="search" placeholder="name, phone or email"></div>
+        <div><a href="/api/export/contacts.csv"><button class="ghost">Export CSV</button></a></div>
+      </div>
+      <div style="overflow:auto;max-height:60vh"><table id="ctable"></table></div>
+    </div>
+  </section>
+
+  <section id="queue">
+    <div class="card"><h2>Pending sends</h2><div style="overflow:auto;max-height:70vh"><table id="qtable"></table></div></div>
+  </section>
+
+  <section id="shots">
+    <div class="card">
+      <h2>₹999 screenshot inbox — a human checks every one</h2>
+      <p class="mut">Nothing is verified automatically. Open the image, confirm the money landed, then send the Calendly link. Sending it marks the contact <b>booked</b> and pulls them out of the P and D tracks.</p>
+      <div id="shotList"></div>
+    </div>
+  </section>
+
+  <section id="timeline">
+    <div class="card"><h2>Campaign timeline</h2><div style="overflow:auto"><table id="ttable"></table></div></div>
+  </section>
+
+  <section id="tools">
+    <div class="card">
+      <h2>Add one contact (use this to test on your own number first)</h2>
+      <div class="row">
+        <div><label>Name</label><input id="nName"></div>
+        <div><label>Phone</label><input id="nPhone" placeholder="9876543210"></div>
+        <div><label>Email</label><input id="nEmail"></div>
+        <div><label><input type="checkbox" id="nM1" checked style="width:auto"> send M1</label><button class="act" id="addContact">Add</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Import registrants (CSV)</h2>
+      <div class="row">
+        <div><input type="file" id="impFile" accept=".csv,.txt"></div>
+        <div><label><input type="checkbox" id="impM1" style="width:auto"> send M1 to each</label><button class="act" id="impBtn">Import</button></div>
+      </div>
+      <p class="mut">Any CSV works — the first cell that looks like a phone number is used.</p>
+    </div>
+    <div class="card">
+      <h2>Import attendance (Friday night, after the WebinarJam export)</h2>
+      <div class="row">
+        <div><input type="file" id="attFile" accept=".csv,.txt"></div>
+        <div><button class="act" id="attBtn">Mark attended</button></div>
+      </div>
+      <p class="mut">Matches on phone number. Everyone matched gets <b>attended = YES</b>; everyone else stays on the NA1 track.</p>
+    </div>
+    <div class="card">
+      <h2>Send one message now</h2>
+      <div class="row">
+        <div><label>Phone</label><input id="snPhone"></div>
+        <div><label>Message</label><select id="snMsg"></select></div>
+        <div><button class="act" id="snBtn">Queue it</button></div>
+      </div>
+      <pre id="preview" style="margin-top:12px"></pre>
+    </div>
+    <div class="card">
+      <h2>Send SS (Calendly) by hand</h2>
+      <div class="row">
+        <div><label>Phone</label><input id="ssPhone"></div>
+        <div><button class="act" id="ssBtn">Send Calendly link</button></div>
+      </div>
+    </div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

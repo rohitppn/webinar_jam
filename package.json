@@ -1,0 +1,25 @@
+{
+  "name": "brothing-wa-sequencer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "TheBroThing Masterclass WhatsApp sequencer — WebinarJam webhook -> throttled WhatsApp sequence -> Google Sheets log",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@whiskeysockets/baileys": "^6.7.18",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "googleapis": "^144.0.0",
+    "luxon": "^3.5.0",
+    "multer": "^2.3.0",
+    "pino": "^9.6.0",
+    "qrcode": "^1.5.4"
+  }
+}
