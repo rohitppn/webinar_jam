@@ -250,6 +250,14 @@ function refreshTab(t) {
      messages: refreshTemplates, timeline: refreshTimeline, dash: refreshOps }[t] || (() => {}))()
 }
 
+fetch('/api/auth/mode').then((r) => r.json()).then((m) => {
+  $('#whoami').textContent = m.session || 'admin (break-glass)'
+})
+$('#signout').onclick = async () => {
+  await post('/api/auth/logout')
+  location.href = '/login'
+}
+
 refreshStatus(); loadMessages(); refreshOps()
 setInterval(refreshStatus, 5000)
 setInterval(() => {

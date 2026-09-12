@@ -10,6 +10,7 @@ import { initSheets } from './sheets.js'
 import { initSupabase, sbFetchContacts } from './supabase.js'
 import { buildRoutes } from './routes.js'
 import { db } from './store.js'
+import { signIn, signOut, sessionFor, basicAuthOk, sessionCookie, clearCookie, parseCookies, supabaseAuthEnabled } from './auth.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -21,14 +22,32 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }))
 app.get('/health', (req, res) => res.json({ ok: true, wa: wa.status, uptime: process.uptime() }))
 
 const routes = buildRoutes()
-// The webhook authenticates with its own token, so it bypasses basic auth.
+
+// --- sign in / out (must sit before the auth gate) ---
+app.get('/login', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'login.html')))
+app.get('/api/auth/mode', (req, res) =>
+  res.json({ supabase: supabaseAuthEnabled(), session: sessionFor(req)?.email || null }))
+app.post('/api/login', async (req, res) => {
+  try {
+    const { sessionId, email, days } = await signIn(req.body.email, req.body.password, req.ip)
+    res.set('Set-Cookie', sessionCookie(sessionId)).json({ ok: true, email, days })
+  } catch (e) {
+    res.status(401).json({ ok: false, error: e.message })
+  }
+})
+app.post('/api/auth/logout', (req, res) => {
+  signOut(parseCookies(req).sid)
+  res.set('Set-Cookie', clearCookie()).json({ ok: true })
+})
+
+// The webhook carries its own token, so it bypasses the dashboard gate.
 app.use((req, res, next) => {
   if (req.path.startsWith('/webhook/') || req.path === '/health') return next()
-  const hdr = req.get('authorization') || ''
-  const [, b64] = hdr.split(' ')
-  const [u, p] = Buffer.from(b64 || '', 'base64').toString().split(':')
-  if (u === config.adminUser && p === config.adminPass) return next()
-  res.set('WWW-Authenticate', 'Basic realm="TheBroThing Sequencer"').status(401).send('Auth required')
+  if (sessionFor(req)) return next()
+  if (basicAuthOk(req)) return next()          // break-glass
+  // Browsers get the sign-in page; API callers get a clean 401.
+  if (req.accepts('html') && !req.path.startsWith('/api/')) return res.redirect('/login')
+  return res.status(401).json({ ok: false, error: 'not signed in' })
 })
 app.use(routes)
 app.use(express.static(path.join(__dirname, '..', 'public')))
@@ -43,6 +62,7 @@ app.listen(config.port, () => {
   console.log(`  throttle   : ${config.burstSize}/burst, ${config.burstRestMinutes} min rest, ${config.minGapSeconds}-${config.maxGapSeconds}s gaps, cap ${config.dailyCap}/day`)
   console.log(`  window     : ${config.quietStartHour}:00-${config.quietEndHour}:00 ${config.tz}`)
   console.log(`  dry run    : ${config.dryRun}`)
+  console.log(`  sign-in    : ${supabaseAuthEnabled() ? 'Supabase Auth + break-glass admin' : 'break-glass admin only (set SUPABASE_ANON_KEY)'}`)
   console.log(`  contacts   : ${db.allContacts().length}\n`)
   if (isDataDirEphemeral) {
     console.warn('  !! No /data volume mounted on Railway — the WhatsApp session will be lost on redeploy.')

@@ -52,6 +52,9 @@ export const config = {
   supabaseUrl: (process.env.SUPABASE_URL || '').replace(/\/+$/, ''),
   supabaseKey: process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || '',
   supabaseEnabled: !!(process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY)),
+  // The publishable/anon key is safe to expose; it is what the sign-in exchange uses.
+  supabaseAnonKey: process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '',
+  secureCookies: bool(process.env.SECURE_COOKIES, true),
 
   // --- links / merge values ---
   // No defaults on purpose: this repo is public. Set these in Railway's variables.

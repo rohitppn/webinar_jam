@@ -131,6 +131,20 @@ Indian 10-digit numbers get `91` prefixed automatically.
 
 ---
 
+## Dashboard sign-in
+
+Two routes, deliberately:
+
+1. **Supabase Auth** — real accounts with individual emails and passwords. Add people in
+   Supabase → Authentication → Users → *Add user*. There is no public signup; only accounts
+   that exist in that project can sign in. Sessions last 7 days and are stored server-side.
+2. **Break-glass** — `ADMIN_USER` / `ADMIN_PASS` over HTTP basic auth still works. This
+   exists so a Supabase outage or a misconfigured project can never lock the operator out
+   mid-campaign. Keep the password strong, or unset `SUPABASE_ANON_KEY` to disable route 1.
+
+Repeated failed sign-ins from one IP are locked out for ten minutes. The app never sees or
+stores a password — credentials go straight to Supabase and what is kept is an opaque session id.
+
 ## Where the data lives
 
 The dashboard is the record. Everything is written to the Railway volume at `/data` and readable
