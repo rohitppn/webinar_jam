@@ -25,7 +25,11 @@ export function buildRoutes() {
   // Accept the token from the query string, the body, a header, or the path — integration
   // tools vary in what they preserve, and a stripped query string should not look like silence.
   const webhookHandler = (req, res) => {
-    const token = req.query.token || req.body?.token || req.get('x-webhook-token') || req.params.token
+    // WebinarJam appends its own path to the base URL, so the token can end up in any
+    // segment. Look everywhere rather than insisting on one shape.
+    const pathSegments = req.path.split('/').filter(Boolean)
+    const token = req.query.token || req.body?.token || req.get('x-webhook-token') ||
+      pathSegments.find((seg) => seg === config.webhookToken) || req.params.token
     const b = { ...(req.query || {}), ...(req.body || {}) }
     // Record every hit, accepted or not, so a misconfigured sender is visible instead of invisible.
     const hit = {
@@ -77,8 +81,9 @@ export function buildRoutes() {
     return finish(`accepted: ${phone}${created ? ' (new)' : ' (duplicate)'}`, 200, { ok: true, phone, created, m1_queued: !!q })
   }
 
+  // Match the bare path and anything appended beneath it.
   r.all('/webhook/webinarjam', webhookHandler)
-  r.all('/webhook/webinarjam/:token', webhookHandler)
+  r.all('/webhook/webinarjam/*', webhookHandler)
 
   // Recent webhook traffic — the first place to look when registrations are not arriving.
   r.get('/api/webhook-hits', (req, res) => res.json(db.state.webhookHits || []))
