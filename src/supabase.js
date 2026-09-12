@@ -201,6 +201,23 @@ export async function sbPeek(table, limit = 5) {
   return (await req(`${TBL[table]}?select=*&order=${order}&limit=${limit}`)) || []
 }
 
+/** Delete every row in the four webinar_ tables. Used only by the explicit reset. */
+export async function sbPurge() {
+  if (!config.supabaseEnabled) return { enabled: false }
+  const out = {}
+  for (const [label, table] of Object.entries(TBL)) {
+    try {
+      // PostgREST refuses an unfiltered delete, so match on a column that is always present.
+      const filter = label === 'contacts' ? 'phone=not.is.null' : 'id=gt.0'
+      await req(`${table}?${filter}`, { method: 'DELETE', headers: { Prefer: 'return=minimal' } })
+      out[label] = 'cleared'
+    } catch (e) {
+      out[label] = `error: ${e.message}`
+    }
+  }
+  return out
+}
+
 async function flush() {
   while (ready && pending.length) {
     const item = pending.shift()

@@ -10,7 +10,7 @@ import { runScheduler, enqueueInstant, timeline } from './scheduler.js'
 import { sendSS, handleInbound } from './inbound.js'
 import { normalisePhone, firstNameOf } from './phone.js'
 import { syncContact, sheetsState, logOps } from './sheets.js'
-import { supabaseState, sbCounts, sbPeek } from './supabase.js'
+import { supabaseState, sbCounts, sbPeek, sbPurge } from './supabase.js'
 import { now, isoStamp } from './time.js'
 import { MESSAGES, BY_ID } from './sequence.js'
 import { render, missingFields, unsetConfigFields } from './render.js'
@@ -263,14 +263,16 @@ export function buildRoutes() {
   })
 
   // Clear all contacts/queue after a test run. Requires an explicit confirm string.
-  r.post('/api/reset', (req, res) => {
+  r.post('/api/reset', async (req, res) => {
     if (req.body.confirm !== 'DELETE ALL CONTACTS') {
       return res.status(400).json({ ok: false, error: 'send {"confirm":"DELETE ALL CONTACTS"}' })
     }
     const n = db.resetCampaign()
     save()
     logOps('campaign_reset', `${n} contacts removed`)
-    res.json({ ok: true, removed: n })
+    // Supabase rows are only cleared when explicitly asked for — it is someone else's database.
+    const supabase = req.body.alsoSupabase ? await sbPurge() : 'left untouched'
+    res.json({ ok: true, removed: n, supabase })
   })
 
   // Simulate an inbound reply — for testing keyword routing without a live phone.
