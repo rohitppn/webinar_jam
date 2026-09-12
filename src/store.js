@@ -155,6 +155,26 @@ export const db = {
     markDirty()
   },
 
+  deleteContact(phone) {
+    if (!state.contacts[phone]) return false
+    delete state.contacts[phone]
+    state.queue = state.queue.filter((q) => q.phone !== phone)
+    state.screenshots = state.screenshots.filter((s) => s.phone !== phone)
+    markDirty()
+    return true
+  },
+
+  /** Wipe campaign data but keep settings and the WhatsApp session. For clearing test runs. */
+  resetCampaign() {
+    const n = Object.keys(state.contacts).length
+    state.contacts = {}
+    state.queue = []
+    state.screenshots = []
+    state.counters = { day: null, sentToday: 0, burstCount: 0, restUntil: null }
+    markDirty()
+    return n
+  },
+
   addScreenshot(entry) { state.screenshots.unshift(entry); markDirty() },
   ops(event, detail = '') {
     state.opsLog.unshift({ at: isoStamp(), event, detail })

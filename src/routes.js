@@ -234,6 +234,24 @@ export function buildRoutes() {
   })
   r.post('/api/scheduler/run', (req, res) => res.json(runScheduler()))
 
+  // Remove one contact and everything queued for them.
+  r.delete('/api/contact/:phone', (req, res) => {
+    const ok = db.deleteContact(normalisePhone(req.params.phone) || req.params.phone)
+    if (ok) { save(); logOps('contact_deleted', req.params.phone) }
+    res.json({ ok })
+  })
+
+  // Clear all contacts/queue after a test run. Requires an explicit confirm string.
+  r.post('/api/reset', (req, res) => {
+    if (req.body.confirm !== 'DELETE ALL CONTACTS') {
+      return res.status(400).json({ ok: false, error: 'send {"confirm":"DELETE ALL CONTACTS"}' })
+    }
+    const n = db.resetCampaign()
+    save()
+    logOps('campaign_reset', `${n} contacts removed`)
+    res.json({ ok: true, removed: n })
+  })
+
   // Simulate an inbound reply — for testing keyword routing without a live phone.
   r.post('/api/simulate-inbound', async (req, res) => {
     const phone = normalisePhone(req.body.phone)
