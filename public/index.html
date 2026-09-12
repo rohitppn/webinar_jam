@@ -67,6 +67,8 @@
     <button data-t="connect">Connect</button>
     <button data-t="contacts">Contacts</button>
     <button data-t="queue">Queue</button>
+    <button data-t="sent">Sent log</button>
+    <button data-t="replies">Replies</button>
     <button data-t="shots">Screenshots</button>
     <button data-t="timeline">Timeline</button>
     <button data-t="tools">Tools</button>
@@ -110,6 +112,29 @@
 
   <section id="queue">
     <div class="card"><h2>Pending sends</h2><div style="overflow:auto;max-height:70vh"><table id="qtable"></table></div></div>
+  </section>
+
+  <section id="sent">
+    <div class="card">
+      <h2>Every message sent</h2>
+      <div class="row" style="margin-bottom:12px">
+        <div><label>Search (phone, name, message id, text)</label><input id="msgSearch" placeholder="e.g. M7, or 9876"></div>
+        <div><a href="/api/export/messages.csv"><button class="ghost">Export CSV</button></a></div>
+      </div>
+      <div id="msgStats" class="grid" style="margin-bottom:14px"></div>
+      <div style="overflow:auto;max-height:60vh"><table id="msgTable"></table></div>
+    </div>
+  </section>
+
+  <section id="replies">
+    <div class="card">
+      <h2>Every reply received</h2>
+      <div class="row" style="margin-bottom:12px">
+        <div><label>Search (phone, name, text, keyword)</label><input id="inSearch" placeholder="e.g. CONFIRMED"></div>
+        <div><a href="/api/export/inbound.csv"><button class="ghost">Export CSV</button></a></div>
+      </div>
+      <div style="overflow:auto;max-height:65vh"><table id="inTable"></table></div>
+    </div>
   </section>
 
   <section id="shots">

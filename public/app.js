@@ -81,6 +81,8 @@ async function refreshContacts() {
 }
 window.flag = async (phone, key, val) => { await post(`/api/contact/${phone}/flag`, { [key]: val }); refreshContacts() }
 $('#search').oninput = () => { clearTimeout(window._s); window._s = setTimeout(refreshContacts, 250) }
+$('#msgSearch').oninput = () => { clearTimeout(window._m); window._m = setTimeout(refreshSent, 250) }
+$('#inSearch').oninput = () => { clearTimeout(window._i); window._i = setTimeout(refreshReplies, 250) }
 
 async function refreshQueue() {
   const q = await api('/api/queue')
@@ -93,6 +95,37 @@ async function refreshQueue() {
     </tr>`).join('') || '<tr><td class="mut">Queue is empty.</td></tr>'
 }
 window.cancelQ = async (id) => { await post(`/api/queue/${id}/cancel`); refreshQueue() }
+
+async function refreshSent() {
+  const [rows, stats] = await Promise.all([
+    api('/api/logs/messages?q=' + encodeURIComponent($('#msgSearch').value || '')),
+    api('/api/logs/stats')
+  ])
+  const st = stats.byStatus || {}
+  $('#msgStats').innerHTML = [
+    ['Sent', st.sent || 0], ['Skipped', st.skipped || 0], ['Failed', st.failed || 0], ['Total logged', stats.total || 0]
+  ].map(([k, v]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('')
+  $('#msgTable').innerHTML = `<tr><th>When</th><th>Msg</th><th>To</th><th>Status</th><th>Text</th></tr>` +
+    rows.map((r) => `<tr>
+      <td class="mut" style="white-space:nowrap;font-size:12px">${esc(r.timestamp)}</td>
+      <td><b>${esc(r.message_id)}</b></td>
+      <td>${esc(r.first_name)}<div class="mut" style="font-size:11px">${esc(r.phone)}</div></td>
+      <td><span class="tag" style="${r.status === 'sent' ? 'color:var(--accent)' : r.status === 'failed' ? 'color:var(--bad)' : 'color:var(--muted)'}">${esc(r.status)}</span>${r.error ? `<div class="mut" style="font-size:11px">${esc(r.error)}</div>` : ''}</td>
+      <td class="mut" style="font-size:12px;max-width:420px">${esc((r.text || '').slice(0, 160))}</td>
+    </tr>`).join('') || '<tr><td class="mut">Nothing sent yet.</td></tr>'
+}
+
+async function refreshReplies() {
+  const rows = await api('/api/logs/inbound?q=' + encodeURIComponent($('#inSearch').value || ''))
+  $('#inTable').innerHTML = `<tr><th>When</th><th>From</th><th>Keyword</th><th>Message</th><th>Image</th></tr>` +
+    rows.map((r) => `<tr>
+      <td class="mut" style="white-space:nowrap;font-size:12px">${esc(r.timestamp)}</td>
+      <td>${esc(r.first_name)}<div class="mut" style="font-size:11px">${esc(r.phone)}</div></td>
+      <td>${r.keyword ? `<span class="tag">${esc(r.keyword)}</span>` : ''}</td>
+      <td style="max-width:460px">${esc(r.text || '')}</td>
+      <td>${r.media_file ? `<a href="/media/${encodeURIComponent(r.media_file)}" target="_blank">view</a>` : ''}</td>
+    </tr>`).join('') || '<tr><td class="mut">No replies yet.</td></tr>'
+}
 
 async function refreshShots() {
   const list = await api('/api/screenshots')
@@ -160,7 +193,8 @@ async function loadMessages() {
 }
 
 function refreshTab(t) {
-  ({ connect: refreshQR, contacts: refreshContacts, queue: refreshQueue, shots: refreshShots, timeline: refreshTimeline, dash: refreshOps }[t] || (() => {}))()
+  ({ connect: refreshQR, contacts: refreshContacts, queue: refreshQueue, sent: refreshSent,
+     replies: refreshReplies, shots: refreshShots, timeline: refreshTimeline, dash: refreshOps }[t] || (() => {}))()
 }
 
 refreshStatus(); loadMessages(); refreshOps()

@@ -110,7 +110,20 @@ Indian 10-digit numbers get `91` prefixed automatically.
 
 ---
 
-## Google Sheets setup
+## Where the data lives
+
+The dashboard is the record. Everything is written to the Railway volume at `/data` and readable
+in the browser:
+
+- **Contacts** — every registrant with flags, tags, replies and which messages they received
+- **Sent log** — every message with timestamp, status and the exact text that went out
+- **Replies** — every inbound message with the keyword it matched, and any image received
+- **Screenshots** — the ₹999 review inbox
+
+Each of those exports to CSV from its own tab. Google Sheets below is **optional** — a live mirror,
+not the store. Leave `GOOGLE_SHEET_ID` unset and nothing is lost.
+
+## Google Sheets setup (optional)
 
 1. Google Cloud Console → new project → enable **Google Sheets API**.
 2. Create a **Service Account** → Keys → Add key → JSON. Download it.

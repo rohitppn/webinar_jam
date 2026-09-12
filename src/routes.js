@@ -13,6 +13,7 @@ import { syncContact, sheetsState, logOps } from './sheets.js'
 import { now, isoStamp } from './time.js'
 import { MESSAGES, BY_ID } from './sequence.js'
 import { render, missingFields, unsetConfigFields } from './render.js'
+import { messageLog, inboundLog, messageStats, toCsv } from './logs.js'
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } })
 
@@ -104,6 +105,19 @@ export function buildRoutes() {
   })
 
   r.get('/api/ops', (req, res) => res.json(db.state.opsLog.slice(0, 100)))
+
+  // ---------- message + reply history (the dashboard is the record) ----------
+  r.get('/api/logs/messages', (req, res) =>
+    res.json(messageLog({ q: req.query.q || '', limit: Number(req.query.limit) || 300 })))
+  r.get('/api/logs/inbound', (req, res) =>
+    res.json(inboundLog({ q: req.query.q || '', limit: Number(req.query.limit) || 300 })))
+  r.get('/api/logs/stats', (req, res) => res.json(messageStats()))
+  r.get('/api/export/messages.csv', (req, res) =>
+    res.type('text/csv').attachment('message-log.csv').send(
+      toCsv(messageLog({ limit: 100000 }), ['timestamp', 'phone', 'first_name', 'message_id', 'status', 'error', 'text'])))
+  r.get('/api/export/inbound.csv', (req, res) =>
+    res.type('text/csv').attachment('inbound-log.csv').send(
+      toCsv(inboundLog({ limit: 100000 }), ['timestamp', 'phone', 'first_name', 'text', 'keyword', 'media_file'])))
 
   r.post('/api/settings', (req, res) => {
     for (const k of ['seats_left', 'seats_taken', 'one_line_action']) {
