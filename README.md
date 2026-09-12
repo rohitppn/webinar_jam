@@ -23,6 +23,15 @@ exactly as rule 6 of the doc requires.
 | **NA1 / P2–P7 / FC / D1 / D2** | Scheduled with the exact audiences from the doc. Booking exits P and D instantly. |
 | **STOP** | Removes the contact from everything within the minute, permanently, and logs it. |
 
+### Editing message copy
+
+The **Messages** tab edits any message's wording. Changes apply immediately, including
+to messages already queued for that evening. The shipped copy is never lost — every
+edited message has a *Restore original* button.
+
+Saving is validated: an unknown merge field (a typo like `{frist_name}`) is rejected
+rather than sent literally, and an empty message is refused.
+
 ### Late registrants
 
 Someone who registers on Wednesday joins the sequence where it stands:

@@ -1,6 +1,7 @@
 import { SCHEDULED, BY_ID } from './sequence.js'
 import { db, save } from './store.js'
 import { render, missingFields } from './render.js'
+import { bodyOf } from './templates.js'
 import { now, sendTimeFor, isoStamp, fromISO } from './time.js'
 import { logOps } from './sheets.js'
 
@@ -24,7 +25,8 @@ export function runScheduler() {
       // permanently, never delivered late and never as a backlog burst.
       if (c.registered_at && due < fromISO(c.registered_at)) continue
       if (!msg.audience(c)) continue
-      const miss = missingFields(msg.body, c)
+      const body = bodyOf(msg)
+      const miss = missingFields(body, c)
       if (miss.length) {
         if (!notes.includes(msg.id)) {
           notes.push(msg.id)
@@ -35,7 +37,7 @@ export function runScheduler() {
       db.enqueue({
         phone: c.phone,
         messageId: msg.id,
-        body: render(msg.body, c),
+        body: render(body, c),
         priority: msg.priority,
         lateWindow: msg.lateWindow,
         notBefore: isoStamp(due > t ? due : t)
@@ -52,7 +54,8 @@ export function runScheduler() {
 export function enqueueInstant(contact, messageId = 'M1') {
   const msg = BY_ID[messageId]
   if (!msg || contact.optedOut || contact.sent[messageId]) return null
-  const miss = missingFields(msg.body, contact)
+  const body = bodyOf(msg)
+  const miss = missingFields(body, contact)
   if (miss.length) {
     logOps('message_held', `${messageId} held for ${contact.phone} — unset: ${miss.join(', ')}`)
     return null
@@ -60,7 +63,7 @@ export function enqueueInstant(contact, messageId = 'M1') {
   const q = db.enqueue({
     phone: contact.phone,
     messageId,
-    body: render(msg.body, contact),
+    body: render(body, contact),
     priority: msg.priority ?? 0,
     lateWindow: msg.lateWindow
   })

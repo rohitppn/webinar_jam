@@ -71,6 +71,7 @@
     <button data-t="sent">Sent log</button>
     <button data-t="replies">Replies</button>
     <button data-t="shots">Screenshots</button>
+    <button data-t="messages">Messages</button>
     <button data-t="timeline">Timeline</button>
     <button data-t="hooks">Webhook</button>
     <button data-t="tools">Tools</button>
@@ -144,6 +145,17 @@
       <h2>₹999 screenshot inbox — a human checks every one</h2>
       <p class="mut">Nothing is verified automatically. Open the image, confirm the money landed, then send the Calendly link. Sending it marks the contact <b>booked</b> and pulls them out of the P and D tracks.</p>
       <div id="shotList"></div>
+    </div>
+  </section>
+
+  <section id="messages">
+    <div class="card">
+      <h2>Message copy — edit what goes out</h2>
+      <p class="mut">Changes apply immediately, including to messages already queued for tonight.
+      Merge fields in braces are filled per contact: <code>{first_name}</code> <code>{seats_left}</code>
+      <code>{seats_taken}</code> <code>{one_line_action}</code> <code>{join_link}</code>
+      <code>{calendly_link}</code> <code>{upi_id}</code>. Wrap a word in *asterisks* for bold.</p>
+      <div id="tplList"></div>
     </div>
   </section>
 

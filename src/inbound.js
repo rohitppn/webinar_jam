@@ -1,6 +1,7 @@
 import { db, save } from './store.js'
 import { BY_ID } from './sequence.js'
 import { render } from './render.js'
+import { bodyOf } from './templates.js'
 import { logInbound, syncContact, logMessage } from './sheets.js'
 import { isoStamp, now, eventStart, sendTimeFor } from './time.js'
 import { config } from './config.js'
@@ -72,7 +73,7 @@ export async function handleInbound({ phone, text, mediaFile }) {
     contact.confirmed = true
     if (!contact.sent.M1R) {
       const m = BY_ID.M1R
-      db.enqueue({ phone, messageId: 'M1R', body: render(m.body, contact), priority: 0 })
+      db.enqueue({ phone, messageId: 'M1R', body: render(bodyOf(m), contact), priority: 0 })
       action = 'auto-reply M1R queued'
     }
   } else if (mediaFile) {
@@ -97,7 +98,7 @@ export function sendSS(phone) {
   const contact = db.findContact(phone)
   if (!contact) throw new Error('unknown contact')
   const m = BY_ID.SS
-  db.enqueue({ phone, messageId: 'SS', body: render(m.body, contact), priority: 0 })
+  db.enqueue({ phone, messageId: 'SS', body: render(bodyOf(m), contact), priority: 0 })
   contact.booked = true
   contact.tags = [...new Set([...contact.tags, 'BOOKED'])]
   // Booking exits the P and D tracks immediately.

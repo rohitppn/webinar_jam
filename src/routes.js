@@ -14,6 +14,7 @@ import { supabaseState, sbCounts, sbPeek, sbPurge } from './supabase.js'
 import { now, isoStamp } from './time.js'
 import { MESSAGES, BY_ID } from './sequence.js'
 import { render, missingFields, unsetConfigFields } from './render.js'
+import { bodyOf, listTemplates, setTemplate, resetTemplate } from './templates.js'
 import { messageLog, inboundLog, messageStats, toCsv } from './logs.js'
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } })
@@ -63,6 +64,16 @@ export function buildRoutes() {
     const email = b.email || b.user_email || ''
     const phone = normalisePhone(rawPhone)
 
+    // ?probe=1 validates the token and field mapping without creating a contact
+    // or sending anything. Use this for reachability checks.
+    if (req.query.probe || req.body?.probe) {
+      return finish(`probe ok: would register ${phone || '(no usable phone)'}`, 200, {
+        ok: true, probe: true, parsedPhone: phone,
+        parsedName: firstNameOf(b.first_name || rawName),
+        note: 'probe mode — no contact created, no message sent'
+      })
+    }
+
     if (!phone) {
       logOps('webhook_bad_phone', JSON.stringify(b).slice(0, 400))
       return finish('rejected: no usable phone field', 200, { ok: false, error: 'no usable phone', received: b })
@@ -87,6 +98,38 @@ export function buildRoutes() {
 
   // Recent webhook traffic — the first place to look when registrations are not arriving.
   r.get('/api/webhook-hits', (req, res) => res.json(db.state.webhookHits || []))
+
+  // ---------- editable message copy ----------
+  r.get('/api/templates', (req, res) => res.json(listTemplates()))
+  r.put('/api/templates/:id', (req, res) => {
+    try {
+      const body = setTemplate(req.params.id, req.body.body)
+      const requeued = requeuePending(req.params.id)
+      logOps('template_edited', `${req.params.id} (${requeued} queued message(s) re-rendered)`)
+      res.json({ ok: true, body, requeued })
+    } catch (e) { res.status(400).json({ ok: false, error: e.message }) }
+  })
+  r.post('/api/templates/:id/reset', (req, res) => {
+    const body = resetTemplate(req.params.id)
+    const requeued = requeuePending(req.params.id)
+    logOps('template_reset', `${req.params.id}`)
+    res.json({ ok: true, body, requeued })
+  })
+
+  // An edit must reach messages already sitting in the queue, or a 7:30 PM send would
+  // go out with the text the operator just changed.
+  function requeuePending(messageId) {
+    let n = 0
+    for (const q of db.queue) {
+      if (q.status !== 'pending' || q.messageId !== messageId) continue
+      const c = db.findContact(q.phone)
+      if (!c) continue
+      q.body = render(bodyOf(messageId), c)
+      n += 1
+    }
+    if (n) save()
+    return n
+  }
 
   // ---------- everything below is admin (basic-auth applied in index.js) ----------
   r.get('/api/status', (req, res) => {
@@ -274,16 +317,16 @@ export function buildRoutes() {
     const m = BY_ID[req.params.id]
     if (!m) return res.status(404).json({ ok: false })
     const sample = db.allContacts()[0] || { first_name: 'Rahul' }
-    res.json({ id: m.id, body: render(m.body, sample) })
+    res.json({ id: m.id, body: render(bodyOf(m), sample) })
   })
   r.post('/api/send-now', (req, res) => {
     const phone = normalisePhone(req.body.phone)
     const m = BY_ID[req.body.messageId]
     const c = phone && db.findContact(phone)
     if (!c || !m) return res.status(400).json({ ok: false, error: 'unknown contact or message' })
-    const miss = missingFields(m.body, c)
+    const miss = missingFields(bodyOf(m), c)
     if (miss.length) return res.status(400).json({ ok: false, error: `unset merge field(s): ${miss.join(', ')}` })
-    db.enqueue({ phone, messageId: m.id, body: render(m.body, c), priority: 0, lateWindow: m.lateWindow })
+    db.enqueue({ phone, messageId: m.id, body: render(bodyOf(m), c), priority: 0, lateWindow: m.lateWindow })
     save()
     res.json({ ok: true })
   })

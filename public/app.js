@@ -144,6 +144,41 @@ async function refreshHooks() {
     </tr>`).join('') || '<tr><td class="mut">No webhook calls received yet — WebinarJam has not contacted the server.</td></tr>'
 }
 
+async function refreshTemplates() {
+  const rows = await api('/api/templates')
+  $('#tplList').innerHTML = rows.map((t) => `
+    <div class="card" style="background:var(--panel2);margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+        <b style="font-family:monospace;font-size:15px">${esc(t.id)}</b>
+        <span class="mut" style="font-size:12px">${esc(t.label)}</span>
+        ${t.edited ? '<span class="tag" style="color:var(--warn)">edited</span>' : ''}
+        <span style="flex:1"></span>
+        <button class="act" onclick="saveTpl('${t.id}')">Save</button>
+        ${t.edited ? `<button class="ghost" onclick="resetTpl('${t.id}')">Restore original</button>` : ''}
+      </div>
+      <textarea id="tpl-${t.id}" rows="${Math.min(16, t.body.split('\n').length + 2)}"
+        style="font-family:inherit;line-height:1.5">${esc(t.body)}</textarea>
+      <div class="mut" id="tplmsg-${t.id}" style="font-size:12px;margin-top:6px"></div>
+    </div>`).join('')
+}
+window.saveTpl = async (id) => {
+  const r = await post(`/api/templates/${id}`, { body: $('#tpl-' + id).value })
+  const el = $('#tplmsg-' + id)
+  if (r.ok) {
+    el.style.color = 'var(--accent)'
+    el.textContent = `Saved.${r.requeued ? ` ${r.requeued} already-queued message(s) updated.` : ''}`
+    setTimeout(refreshTemplates, 1200)
+  } else {
+    el.style.color = 'var(--bad)'
+    el.textContent = r.error
+  }
+}
+window.resetTpl = async (id) => {
+  if (!confirm('Restore the original wording for ' + id + '?')) return
+  await post(`/api/templates/${id}/reset`)
+  refreshTemplates()
+}
+
 async function refreshShots() {
   const list = await api('/api/screenshots')
   $('#shotList').innerHTML = list.map((s) => `<div class="shot">
@@ -212,7 +247,7 @@ async function loadMessages() {
 function refreshTab(t) {
   ({ connect: refreshQR, contacts: refreshContacts, queue: refreshQueue, sent: refreshSent,
      replies: refreshReplies, shots: refreshShots, hooks: refreshHooks,
-     timeline: refreshTimeline, dash: refreshOps }[t] || (() => {}))()
+     messages: refreshTemplates, timeline: refreshTimeline, dash: refreshOps }[t] || (() => {}))()
 }
 
 refreshStatus(); loadMessages(); refreshOps()
