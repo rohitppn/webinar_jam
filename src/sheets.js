@@ -2,6 +2,7 @@ import { google } from 'googleapis'
 import { config } from './config.js'
 import { stamp } from './time.js'
 import { appendJsonl } from './store.js'
+import { sbUpsertContact, sbLogMessage, sbLogInbound, sbLogOps } from './supabase.js'
 
 const TABS = {
   Contacts: [
@@ -85,6 +86,7 @@ const contactRow = (c) => [
 /** Write/refresh one contact row. Safe to call often; failures are buffered. */
 export async function syncContact(c) {
   appendJsonl('contacts.jsonl', { at: stamp(), ...c })
+  sbUpsertContact(c)
   if (!ready) { pending.push({ kind: 'contact', c }); return }
   try {
     const row = contactRow(c)
@@ -122,11 +124,18 @@ export async function appendRow(tab, values) {
   }
 }
 
-export const logMessage = (c, messageId, status, error, text) =>
-  appendRow('Message_Log', [stamp(), c.phone, c.first_name, messageId, status, error || '', (text || '').slice(0, 500)])
-export const logInbound = (c, text, keyword, mediaFile) =>
-  appendRow('Inbound_Log', [stamp(), c.phone, c.first_name, (text || '').slice(0, 500), keyword || '', mediaFile || ''])
-export const logOps = (event, detail) => appendRow('Ops_Log', [stamp(), event, String(detail || '').slice(0, 500)])
+export const logMessage = (c, messageId, status, error, text) => {
+  sbLogMessage(c, messageId, status, error, text)
+  return appendRow('Message_Log', [stamp(), c.phone, c.first_name, messageId, status, error || '', (text || '').slice(0, 500)])
+}
+export const logInbound = (c, text, keyword, mediaFile) => {
+  sbLogInbound(c, text, keyword, mediaFile)
+  return appendRow('Inbound_Log', [stamp(), c.phone, c.first_name, (text || '').slice(0, 500), keyword || '', mediaFile || ''])
+}
+export const logOps = (event, detail) => {
+  sbLogOps(event, detail)
+  return appendRow('Ops_Log', [stamp(), event, String(detail || '').slice(0, 500)])
+}
 
 async function flush() {
   while (ready && pending.length) {

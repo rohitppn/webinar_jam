@@ -16,6 +16,8 @@ async function refreshStatus() {
   const w = S.wa.status
   const pill = (el, cls, text) => { const e = $(el); e.className = 'pill ' + cls; e.textContent = text }
   pill('#waPill', w === 'open' ? 'ok' : (w === 'qr' ? 'warn' : 'bad'), 'WhatsApp: ' + w)
+  const sb = S.supabase || {}
+  pill('#sbPill', sb.ready ? 'ok' : (sb.enabled ? 'warn' : ''), 'Supabase: ' + (sb.ready ? 'live' : sb.enabled ? 'retrying' : 'off'))
   pill('#sheetPill', S.sheets.ready ? 'ok' : (S.sheets.enabled ? 'warn' : ''), 'Sheets: ' + (S.sheets.ready ? 'live' : S.sheets.enabled ? 'retrying' : 'off'))
   const t = S.throttle
   pill('#throttlePill', t.restUntil && new Date(t.restUntil) > new Date() ? 'warn' : '', `${t.burstCount}/${t.burstSize} burst · ${t.sentToday}/${t.dailyCap} today`)
@@ -43,6 +45,7 @@ async function refreshStatus() {
   if (!S.settings.campaignArmed) warn.push('Campaign is <b>disarmed</b> — scheduled messages will not queue.')
   if (!S.settings.one_line_action) warn.push('<b>one_line_action</b> is empty — P7 is held until you fill it in.')
   if (S.sheets.enabled && !S.sheets.ready) warn.push('Google Sheets is not writing: ' + esc(S.sheets.error))
+  if (sb.enabled && !sb.ready) warn.push('Supabase is not writing: ' + esc(sb.error) + (sb.buffered ? ` — ${sb.buffered} writes buffered` : ''))
   if ((S.unsetConfig || []).length) warn.push(`Not set in Railway variables: <b>${S.unsetConfig.join(', ')}</b> — every message using them is held until you set them.`)
   $('#warnings').innerHTML = warn.map((x) => `<div class="banner">${x}</div>`).join('')
 

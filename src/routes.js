@@ -10,6 +10,7 @@ import { runScheduler, enqueueInstant, timeline } from './scheduler.js'
 import { sendSS, handleInbound } from './inbound.js'
 import { normalisePhone, firstNameOf } from './phone.js'
 import { syncContact, sheetsState, logOps } from './sheets.js'
+import { supabaseState } from './supabase.js'
 import { now, isoStamp } from './time.js'
 import { MESSAGES, BY_ID } from './sequence.js'
 import { render, missingFields, unsetConfigFields } from './render.js'
@@ -56,6 +57,7 @@ export function buildRoutes() {
     res.json({
       wa: { status: wa.status, me: wa.me, lastError: wa.lastError, qrAt: wa.qrGeneratedAt },
       sheets: sheetsState(),
+      supabase: supabaseState(),
       dispatcher: { ...dispatcher, blocked: blockedReason(null) },
       throttle: {
         burstSize: config.burstSize,

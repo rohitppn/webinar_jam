@@ -48,6 +48,11 @@ export const config = {
   googleCreds: process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '',
   sheetsEnabled: !!(process.env.GOOGLE_SHEET_ID && process.env.GOOGLE_SERVICE_ACCOUNT_JSON),
 
+  // --- supabase (optional mirror + restore) ---
+  supabaseUrl: (process.env.SUPABASE_URL || '').replace(/\/+$/, ''),
+  supabaseKey: process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || '',
+  supabaseEnabled: !!(process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY)),
+
   // --- links / merge values ---
   // No defaults on purpose: this repo is public. Set these in Railway's variables.
   // A message that needs one of these is held, not sent blank — see render.js.

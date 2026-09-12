@@ -7,6 +7,7 @@ import { handleInbound } from './inbound.js'
 import { startDispatcher } from './dispatcher.js'
 import { startScheduler } from './scheduler.js'
 import { initSheets } from './sheets.js'
+import { initSupabase, sbFetchContacts } from './supabase.js'
 import { buildRoutes } from './routes.js'
 import { db } from './store.js'
 
@@ -48,10 +49,25 @@ app.listen(config.port, () => {
     console.warn('  !! Add a Volume with mount path /data in the Railway service settings.\n')
   }
   initSheets()
+  initSupabase().then(restoreFromSupabaseIfEmpty)
   startWhatsApp()
   startDispatcher()
   startScheduler()
 })
+
+/** If the volume came up empty but Supabase has contacts, pull them back. */
+async function restoreFromSupabaseIfEmpty() {
+  try {
+    if (db.allContacts().length > 0) return
+    const rows = await sbFetchContacts()
+    if (!rows.length) return
+    for (const c of rows) db.state.contacts[c.phone] = c
+    db.ops('supabase_restore', `${rows.length} contacts restored`)
+    console.log(`[supabase] restored ${rows.length} contacts into an empty volume`)
+  } catch (e) {
+    console.error('[supabase] restore skipped:', e.message)
+  }
+}
 
 process.on('unhandledRejection', (e) => console.error('[unhandledRejection]', e))
 process.on('uncaughtException', (e) => console.error('[uncaughtException]', e))

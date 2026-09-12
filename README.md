@@ -123,6 +123,22 @@ in the browser:
 Each of those exports to CSV from its own tab. Google Sheets below is **optional** — a live mirror,
 not the store. Leave `GOOGLE_SHEET_ID` unset and nothing is lost.
 
+## Supabase (optional mirror + disaster recovery)
+
+The volume is the store; Supabase is a mirror that also lets the app rebuild itself.
+
+1. Run `supabase-schema.sql` once in the Supabase SQL editor. It creates four
+   `webinar_`-prefixed tables, so they sit alongside anything else in the project.
+2. Set `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` in Railway.
+
+Behaviour:
+
+- Every contact change, send, reply and ops event is mirrored as it happens.
+- If Supabase is unreachable, writes buffer in memory and flush on reconnect. WhatsApp
+  sending is never blocked by it, and the dashboard shows the outage.
+- **If the volume is ever lost**, the app pulls contacts back from Supabase on boot —
+  including each contact's `sent` history, so nobody receives a message twice.
+
 ## Google Sheets setup (optional)
 
 1. Google Cloud Console → new project → enable **Google Sheets API**.
