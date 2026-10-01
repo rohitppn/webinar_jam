@@ -13,6 +13,7 @@ const EMPTY = {
     seats_left: '5',
     seats_taken: '0',
     one_line_action: '',
+    next_masterclass: '',
     paused: false,
     campaignArmed: true
   },

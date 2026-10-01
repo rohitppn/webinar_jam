@@ -6,7 +6,8 @@ import { db, save } from './store.js'
 
 const KNOWN_FIELDS = [
   'first_name', 'full_name', 'seats_left', 'seats_taken',
-  'one_line_action', 'join_link', 'calendly_link', 'upi_id', 'room_cap'
+  'one_line_action', 'join_link', 'calendly_link', 'upi_id', 'room_cap',
+  'event_date', 'event_time', 'event_datetime', 'next_masterclass'
 ]
 
 /** The live text for a message: the override if one exists, otherwise the shipped copy. */

@@ -23,6 +23,15 @@ exactly as rule 6 of the doc requires.
 | **NA1 / P2–P7 / FC / D1 / D2** | Scheduled with the exact audiences from the doc. Booking exits P and D instantly. |
 | **STOP** | Removes the contact from everything within the minute, permanently, and logs it. |
 
+### Event date
+
+`EVENT_START` drives both the schedule and the copy. `{event_datetime}`, `{event_date}` and
+`{event_time}` are rendered from it, so moving the event updates every message that names
+the date — no copy editing, nothing left saying last month.
+
+`{next_masterclass}` is the *following* session's date, set on the dashboard because it
+changes every cycle. NA1, D2 and P7 are held until it is filled in.
+
 ### Editing message copy
 
 The **Messages** tab edits any message's wording. Changes apply immediately, including

@@ -89,6 +89,7 @@
         <div><label>seats_left</label><input id="seats_left"></div>
         <div><label>seats_taken (live WebinarJam count)</label><input id="seats_taken"></div>
         <div><label>one_line_action (for P7)</label><input id="one_line_action"></div>
+        <div><label>next_masterclass (for NA1, D2, P7)</label><input id="next_masterclass" placeholder="Thursday 6 November, 8 PM"></div>
         <div><button class="act" id="saveSettings">Save</button></div>
       </div>
     </div>
@@ -166,7 +167,9 @@
       <p class="mut">Changes apply immediately, including to messages already queued for tonight.
       Merge fields in braces are filled per contact: <code>{first_name}</code> <code>{seats_left}</code>
       <code>{seats_taken}</code> <code>{one_line_action}</code> <code>{join_link}</code>
-      <code>{calendly_link}</code> <code>{upi_id}</code>. Wrap a word in *asterisks* for bold.</p>
+      <code>{calendly_link}</code> <code>{upi_id}</code> <code>{next_masterclass}</code>.
+      <code>{event_datetime}</code>, <code>{event_date}</code> and <code>{event_time}</code> come straight from the
+      event date, so they are always correct. Wrap a word in *asterisks* for bold.</p>
       <div id="tplList"></div>
     </div>
   </section>

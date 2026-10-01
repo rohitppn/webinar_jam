@@ -1,5 +1,6 @@
 import { config } from './config.js'
 import { db } from './store.js'
+import { eventStart } from './time.js'
 
 /** Light spintax: {a|b|c} picks one at random. Lets Arunav vary a word per batch without code changes. */
 function spin(text) {
@@ -9,8 +10,17 @@ function spin(text) {
   })
 }
 
+/** "Friday, 9 October" and "9 PM", straight from EVENT_START. */
+function eventStrings() {
+  const ev = eventStart()
+  const time = ev.minute === 0 ? ev.toFormat('h a') : ev.toFormat('h:mm a')
+  const date = ev.toFormat('cccc, d LLLL')
+  return { event_date: date, event_time: time, event_datetime: `${date}, ${time}` }
+}
+
 export function render(body, contact) {
   const s = db.settings
+  const ev = eventStrings()
   const map = {
     first_name: contact.first_name || 'there',
     full_name: contact.full_name || contact.first_name || '',
@@ -20,7 +30,9 @@ export function render(body, contact) {
     join_link: config.joinLink,
     calendly_link: config.calendlyLink,
     upi_id: config.upiId,
-    room_cap: String(config.roomCap)
+    room_cap: String(config.roomCap),
+    next_masterclass: s.next_masterclass || '',
+    ...ev
   }
   let out = spin(body)
   out = out.replace(/\{(\w+)\}/g, (m, k) => (k in map ? map[k] : m))
@@ -30,6 +42,7 @@ export function render(body, contact) {
 // Fields that must not be blank. Sending "Join link: " with nothing after it is worse
 // than sending nothing at all, so a message referencing an empty one is held.
 const REQUIRED_IF_USED = {
+  next_masterclass: () => db.settings.next_masterclass,
   join_link: () => config.joinLink,
   calendly_link: () => config.calendlyLink,
   upi_id: () => config.upiId,

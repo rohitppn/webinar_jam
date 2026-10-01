@@ -23,7 +23,7 @@ export const MESSAGES = [
     audience: AUDIENCE.all,
     body: `{first_name}, Arunav here from TheBroThing.
 
-You're in for Friday, 18 September, 9 PM. The masterclass where I show you the system my clients use to get 2 to 3 dates in 72 hours.
+You're in for {event_datetime}. The masterclass where I show you the system my clients use to get 2 to 3 dates in 72 hours.
 
 Reply *CONFIRMED* to lock your seat. 400 seats, live only.
 
@@ -55,7 +55,7 @@ Want it set up for you after the session? Reply *YES*.`
   {
     id: 'M4', label: 'Tue 15 Sep, 7:30 PM', trigger: 'scheduled', at: -4410, priority: 5,
     audience: AUDIENCE.all,
-    body: `72 hours to go, {first_name}. Friday, 9 PM.
+    body: `72 hours to go, {first_name}. {event_date}, {event_time}.
 
 Four things on Friday: the top 1% profile, the flirt texting framework, styling, and the cold approach protocol. If there's one you want me to spend more time on, reply with the word. Profile, texting, styling, or approach.`
   },
@@ -67,7 +67,7 @@ Four things on Friday: the top 1% profile, the flirt texting framework, styling,
   {
     id: 'M6', label: 'Thu 17 Sep, 7:30 PM', trigger: 'scheduled', at: -1530, priority: 5,
     audience: AUDIENCE.all,
-    body: `Tomorrow, 9 PM, {first_name}. The room is capped at 400 and {seats_taken} seats are taken.
+    body: `Tomorrow, {event_time}, {first_name}. The room is capped at 400 and {seats_taken} seats are taken.
 
 If you haven't replied *CONFIRMED* yet, do it now so your seat isn't released. Your join link comes here tomorrow morning.`
   },
@@ -107,7 +107,7 @@ Come with your specific situation; the call is about you, not the programme.`
   {
     id: 'NA1', label: 'Sat 19 Sep, 11:00 AM — missed it', trigger: 'scheduled', at: 840, priority: 5,
     audience: AUDIENCE.noShow,
-    body: `You missed last night, {first_name}. No replay, I don't record these. Two options: the next masterclass is Thursday 8 October, or if your situation can't wait, ₹999 to *{upi_id}* books a 20-minute call with me this week and comes off the fee if you join.`
+    body: `You missed last night, {first_name}. No replay, I don't record these. Two options: the next masterclass is {next_masterclass}, or if your situation can't wait, ₹999 to *{upi_id}* books a 20-minute call with me this week and comes off the fee if you join.`
   },
   {
     id: 'P2', label: 'Sat 19 Sep, 11:00 AM — Akshay review', trigger: 'scheduled', at: 840, priority: 5,
@@ -163,12 +163,12 @@ Book 15 minutes and I'll tell you the price and whether it fits: {calendly_link}
     audience: AUDIENCE.attendedNotBookedNoD1Reply,
     body: `Last option, and it's the one most men in the room can do: the full course. Profile, texting, styling, approach, recorded, with FlirtCoach AI. Under ₹15K.
 
-If you want it, book 15 minutes and we set it up: {calendly_link}. After this, nothing until 8 October.`
+If you want it, book 15 minutes and we set it up: {calendly_link}. After this, nothing until {next_masterclass}.`
   },
   {
     id: 'P7', label: 'Mon 28 Sep, 11:00 AM — October date', trigger: 'scheduled', at: 13800, priority: 5,
     audience: AUDIENCE.silentAfterEvent,
-    body: `Next masterclass is Thursday 8 October, 8 PM. I'll send the link when registration opens. Until then, one thing from the session to actually do this week: {one_line_action}.`
+    body: `Next masterclass is {next_masterclass}. I'll send the link when registration opens. Until then, one thing from the session to actually do this week: {one_line_action}.`
   }
 ]
 

@@ -209,7 +209,7 @@ export function buildRoutes() {
       toCsv(inboundLog({ limit: 100000 }), ['timestamp', 'phone', 'first_name', 'text', 'keyword', 'media_file'])))
 
   r.post('/api/settings', (req, res) => {
-    for (const k of ['seats_left', 'seats_taken', 'one_line_action']) {
+    for (const k of ['seats_left', 'seats_taken', 'one_line_action', 'next_masterclass']) {
       if (req.body[k] !== undefined) db.setSetting(k, String(req.body[k]))
     }
     if (req.body.paused !== undefined) db.setSetting('paused', !!req.body.paused)
