@@ -89,8 +89,8 @@ Without it, every redeploy logs WhatsApp out and you rescan the QR, losing the q
 | `ADMIN_USER` | your login for the dashboard |
 | `ADMIN_PASS` | a long password |
 | `WEBHOOK_TOKEN` | a long random string |
-| `EVENT_START` | `2026-09-18T21:00:00` |
-| `EVENT_DAY_EXCEPTION` | `2026-09-18` |
+| `EVENT_START` | `2026-10-08T20:00:00` (Thu 8 Oct, 8 PM IST) |
+| `EVENT_DAY_EXCEPTION` | `2026-10-08` |
 | `BURST_SIZE` | `30` |
 | `BURST_REST_MINUTES` | `60` |
 | `GOOGLE_SHEET_ID` | the id from the sheet URL |
@@ -119,11 +119,16 @@ The status pill turns green. The session now survives redeploys.
 
 ### 7. Point WebinarJam at the webhook
 
-WebinarJam → your webinar → Integrations → Webhook (or Zapier/Make → Webhooks → POST):
+WebinarJam → your webinar (`qwkqz6sm`) → Integrations → Webhook (or Zapier/Make/Pabbly →
+trigger "New WebinarJam Registrant" → action "Webhooks → POST"):
 
 ```
 https://your-app.up.railway.app/webhook/webinarjam?token=YOUR_WEBHOOK_TOKEN
 ```
+
+> The WebinarJam registration form must collect a **phone / WhatsApp number** — with no phone in
+> the payload there is nothing to message. Add `?probe=1` to the URL to validate the token and
+> field mapping without creating a contact.
 
 Send `first_name`, `phone`, `email`. The endpoint also accepts `name`, `phone_number`,
 `mobile`, `user_phone` and form-encoded bodies, so most integration tools work unchanged.

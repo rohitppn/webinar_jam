@@ -24,8 +24,9 @@ export const config = {
 
   // --- event ---
   // Event start, in local tz. Every scheduled message is an offset from this instant.
-  eventStart: process.env.EVENT_START || '2026-09-18T21:00:00',
-  eventDayException: process.env.EVENT_DAY_EXCEPTION ?? '2026-09-18', // day where >1 msg/contact is allowed
+  // Double Your Dating Masterclass — Thursday 8 October 2026, 8 PM IST (WebinarJam qwkqz6sm).
+  eventStart: process.env.EVENT_START || '2026-10-08T20:00:00',
+  eventDayException: process.env.EVENT_DAY_EXCEPTION ?? '2026-10-08', // day where >1 msg/contact is allowed
 
   // --- throttle (the numbers you asked for) ---
   burstSize: num(process.env.BURST_SIZE, 30),            // messages per burst
