@@ -24,8 +24,8 @@
   <h1>TheBroThing Sequencer</h1>
   <p class="sub">Sign in to the campaign dashboard.</p>
   <form id="f">
-    <label for="email">Email</label>
-    <input id="email" type="email" autocomplete="username" required autofocus>
+    <label for="email">Email or admin username</label>
+    <input id="email" type="text" autocomplete="username" required autofocus>
     <label for="password">Password</label>
     <input id="password" type="password" autocomplete="current-password" required>
     <button id="go" type="submit">Sign in</button>
@@ -38,8 +38,8 @@
   fetch('/api/auth/mode').then((r) => r.json()).then((m) => {
     if (m.session) location.href = '/'
     $('#note').textContent = m.supabase
-      ? 'Accounts are managed in Supabase. Ask Arunav to add you.'
-      : 'Supabase sign-in is not configured on this server yet.'
+      ? 'Supabase accounts sign in with an email address. The admin username and password also works here, and keeps working if Supabase is down.'
+      : 'Supabase sign-in is not configured. Use the admin username and password.'
   })
   $('#f').onsubmit = async (e) => {
     e.preventDefault()

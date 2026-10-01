@@ -44,30 +44,46 @@ export async function signIn(email, password, ip) {
   if (rec && rec.count >= MAX_ATTEMPTS && rec.until > Date.now()) {
     throw new Error('Too many attempts. Try again in a few minutes.')
   }
-  if (!supabaseAuthEnabled()) throw new Error('Supabase sign-in is not configured on this server.')
+  // Break-glass first: it needs no network, so it still works when Supabase is paused,
+  // deleted or unreachable. This is the whole point of having it.
+  if (email === config.adminUser && password === config.adminPass && password !== 'change-me') {
+    attempts.delete(ip)
+    return issueSession({ email: config.adminUser, userId: 'admin', via: 'admin' })
+  }
 
-  const res = await fetch(`${config.supabaseUrl}/auth/v1/token?grant_type=password`, {
-    method: 'POST',
-    headers: { apikey: config.supabaseAnonKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
-  })
-  const data = await res.json().catch(() => ({}))
+  if (!supabaseAuthEnabled()) {
+    throw new Error('Supabase sign-in is not configured. Use the admin username and password.')
+  }
+
+  let res, data
+  try {
+    res = await fetch(`${config.supabaseUrl}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { apikey: config.supabaseAnonKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    })
+    data = await res.json().catch(() => ({}))
+  } catch {
+    throw new Error('Cannot reach Supabase — the project may be paused or deleted. Sign in with the admin username and password instead.')
+  }
   if (!res.ok) {
     const r = attempts.get(ip) || { count: 0 }
     attempts.set(ip, { count: r.count + 1, until: Date.now() + 10 * 60 * 1000 })
     throw new Error(data.error_description || data.msg || data.message || 'Invalid email or password')
   }
   attempts.delete(ip)
+  return issueSession({ email: data.user?.email || email, userId: data.user?.id || '', via: 'supabase' })
+}
 
+function issueSession({ email, userId, via }) {
   const id = crypto.randomBytes(32).toString('hex')
   sessions()[id] = {
-    email: data.user?.email || email,
-    userId: data.user?.id || '',
+    email, userId, via,
     created: Date.now(),
     expires: Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000
   }
   save()
-  return { sessionId: id, email: data.user?.email || email, days: SESSION_DAYS }
+  return { sessionId: id, email, days: SESSION_DAYS, via }
 }
 
 export function signOut(sessionId) {
