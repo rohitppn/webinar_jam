@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { config } from './config.js'
 import { db, save } from './store.js'
-import { wa, logout } from './wa.js'
+import { wa, logout, checkOnWhatsApp } from './wa.js'
 import { dispatcher, blockedReason } from './dispatcher.js'
 import { runScheduler, enqueueInstant, timeline } from './scheduler.js'
 import { sendSS, handleInbound } from './inbound.js'
@@ -166,6 +166,15 @@ export function buildRoutes() {
       now: now().toFormat('ccc dd LLL yyyy, HH:mm:ss ZZZZ'),
       dryRun: config.dryRun
     })
+  })
+
+  // Does this number actually have WhatsApp? A live query, so it also proves the
+  // connection is working without sending anyone a message.
+  r.get('/api/wa/check/:phone', async (req, res) => {
+    const phone = normalisePhone(req.params.phone)
+    if (!phone) return res.status(400).json({ ok: false, error: 'bad phone' })
+    const jid = await checkOnWhatsApp(phone)
+    res.json({ ok: true, phone, onWhatsApp: !!jid, jid: jid || null })
   })
 
   r.get('/api/qr', (req, res) => res.json({ status: wa.status, qr: wa.qrDataUrl, at: wa.qrGeneratedAt }))

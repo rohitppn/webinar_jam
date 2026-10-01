@@ -31,11 +31,20 @@ export const wa = {
 
 let reconnectAttempts = 0
 let starting = false
+const seenInbound = new Set() // message ids already handled, so a redelivery is ignored
 
 export async function startWhatsApp() {
   if (starting) return
   starting = true
   try {
+    // Drop the previous socket first. Without this, every reconnect leaves its
+    // listeners attached — and two live sockets means one inbound reply handled
+    // twice, which would send a contact two auto-replies.
+    if (wa.sock) {
+      try { wa.sock.ev.removeAllListeners() } catch {}
+      try { wa.sock.end(undefined) } catch {}
+      wa.sock = null
+    }
     fs.mkdirSync(config.authDir, { recursive: true })
     const { state, saveCreds } = await useMultiFileAuthState(config.authDir)
     const { version } = await fetchLatestBaileysVersion()
@@ -75,7 +84,9 @@ export async function startWhatsApp() {
         const loggedOut = code === DisconnectReason.loggedOut
         wa.status = loggedOut ? 'logged-out' : 'connecting'
         wa.lastError = lastDisconnect?.error?.message || ''
-        db.ops('wa_disconnected', `code=${code} ${wa.lastError}`)
+        // 408 is the QR simply rotating while nobody has scanned yet; logging it as a
+        // disconnect buried the handful of real ones under 84 routine entries.
+        if (code !== 408) db.ops('wa_disconnected', `code=${code} ${wa.lastError}`)
         console.log('[wa] closed. code=', code, 'loggedOut=', loggedOut)
         starting = false
         if (loggedOut) {
@@ -95,6 +106,11 @@ export async function startWhatsApp() {
       for (const m of ev.messages) {
         try {
           if (m.key.fromMe) continue
+          if (m.key.id && seenInbound.has(m.key.id)) continue
+          if (m.key.id) {
+            seenInbound.add(m.key.id)
+            if (seenInbound.size > 2000) seenInbound.delete(seenInbound.values().next().value)
+          }
           const jid = m.key.remoteJid || ''
           if (!jid.endsWith('@s.whatsapp.net')) continue // ignore groups/status/broadcast
           const phone = jid.split('@')[0]
