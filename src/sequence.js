@@ -107,7 +107,7 @@ Come with your specific situation; the call is about you, not the programme.`
   {
     id: 'NA1', label: 'Sat 19 Sep, 11:00 AM — missed it', trigger: 'scheduled', at: 840, priority: 5,
     audience: AUDIENCE.noShow,
-    body: `You missed last night, {first_name}. No replay, I don't record these. Two options: the next masterclass is {next_masterclass}, or if your situation can't wait, ₹999 to *{upi_id}* books a 20-minute call with me this week and comes off the fee if you join.`
+    body: `You missed last night, {first_name}. No replay, I don't record these. If your situation can't wait, ₹999 to *{upi_id}* books a 20-minute call with me this week and comes off the fee if you join.`
   },
   {
     id: 'P2', label: 'Sat 19 Sep, 11:00 AM — Akshay review', trigger: 'scheduled', at: 840, priority: 5,
@@ -163,12 +163,12 @@ Book 15 minutes and I'll tell you the price and whether it fits: {calendly_link}
     audience: AUDIENCE.attendedNotBookedNoD1Reply,
     body: `Last option, and it's the one most men in the room can do: the full course. Profile, texting, styling, approach, recorded, with FlirtCoach AI. Under ₹15K.
 
-If you want it, book 15 minutes and we set it up: {calendly_link}. After this, nothing until {next_masterclass}.`
+If you want it, book 15 minutes and we set it up: {calendly_link}. After this, nothing further from me on it.`
   },
   {
     id: 'P7', label: 'Mon 28 Sep, 11:00 AM — October date', trigger: 'scheduled', at: 13800, priority: 5,
     audience: AUDIENCE.silentAfterEvent,
-    body: `Next masterclass is {next_masterclass}. I'll send the link when registration opens. Until then, one thing from the session to actually do this week: {one_line_action}.`
+    body: `I'll let you know when the next masterclass is scheduled. Until then, one thing from the session to actually do this week: {one_line_action}.`
   }
 ]
 

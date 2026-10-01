@@ -15,6 +15,7 @@ import { now, isoStamp } from './time.js'
 import { MESSAGES, BY_ID } from './sequence.js'
 import { render, missingFields, unsetConfigFields } from './render.js'
 import { bodyOf, listTemplates, setTemplate, resetTemplate } from './templates.js'
+import { MESSAGES as ALL_MESSAGES } from './sequence.js'
 import { messageLog, inboundLog, messageStats, toCsv } from './logs.js'
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } })
@@ -152,6 +153,12 @@ export function buildRoutes() {
       },
       settings: db.settings,
       unsetConfig: unsetConfigFields(),
+      // which operator-set fields the current copy actually depends on
+      fieldsNeeded: ['one_line_action', 'next_masterclass'].reduce((acc, f) => {
+        const users = ALL_MESSAGES.filter((m) => bodyOf(m).includes(`{${f}}`)).map((m) => m.id)
+        if (users.length) acc[f] = users
+        return acc
+      }, {}),
       webhookToken: config.webhookToken,
       stats: {
         contacts: contacts.length,

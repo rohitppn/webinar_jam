@@ -43,8 +43,11 @@ async function refreshStatus() {
   if (w !== 'open') warn.push('WhatsApp is not connected — go to <b>Connect</b> and scan the QR.')
   if (S.settings.paused) warn.push('Sending is <b>paused</b>.')
   if (!S.settings.campaignArmed) warn.push('Campaign is <b>disarmed</b> — scheduled messages will not queue.')
-  if (!S.settings.one_line_action) warn.push('<b>one_line_action</b> is empty — P7 is held until you fill it in.')
-  if (!S.settings.next_masterclass) warn.push('<b>next_masterclass</b> is empty — NA1, D2 and P7 are held until you fill it in.')
+  for (const [field, users] of Object.entries(S.fieldsNeeded || {})) {
+    if (!S.settings[field]) {
+      warn.push(`<b>${field}</b> is empty — ${users.join(', ')} ${users.length > 1 ? 'are' : 'is'} held until you fill it in.`)
+    }
+  }
   if (S.sheets.enabled && !S.sheets.ready) warn.push('Google Sheets is not writing: ' + esc(S.sheets.error))
   if (sb.enabled && !sb.ready) warn.push('Supabase is not writing: ' + esc(sb.error) + (sb.buffered ? ` — ${sb.buffered} writes buffered` : ''))
   if ((S.unsetConfig || []).length) warn.push(`Not set in Railway variables: <b>${S.unsetConfig.join(', ')}</b> — every message using them is held until you set them.`)
