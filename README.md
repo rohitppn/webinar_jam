@@ -89,8 +89,8 @@ Without it, every redeploy logs WhatsApp out and you rescan the QR, losing the q
 | `ADMIN_USER` | your login for the dashboard |
 | `ADMIN_PASS` | a long password |
 | `WEBHOOK_TOKEN` | a long random string |
-| `EVENT_START` | `2026-10-08T20:00:00` (Thu 8 Oct, 8 PM IST) |
-| `EVENT_DAY_EXCEPTION` | `2026-10-08` |
+| `EVENT_START` | `2026-10-09T21:00:00` (Fri 9 Oct, 9 PM IST) |
+| `EVENT_DAY_EXCEPTION` | `2026-10-09` |
 | `BURST_SIZE` | `30` |
 | `BURST_REST_MINUTES` | `60` |
 | `GOOGLE_SHEET_ID` | the id from the sheet URL |
