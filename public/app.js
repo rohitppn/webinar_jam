@@ -79,10 +79,38 @@ async function refreshContacts() {
       <td>${c.confirmed ? '<span class="tag">CONFIRMED</span>' : ''}${c.attended ? '<span class="tag">ATTENDED</span>' : ''}${c.booked ? '<span class="tag">BOOKED</span>' : ''}${c.optedOut ? '<span class="tag" style="color:var(--bad)">STOP</span>' : ''}${(c.tags || []).filter((t) => !['CONFIRMED', 'STOP', 'BOOKED'].includes(t)).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</td>
       <td class="mut" style="font-size:11px">${Object.keys(c.sent || {}).join(' ')}</td>
       <td class="mut" style="font-size:12px;max-width:260px">${esc((c.last_inbound_text || '').slice(0, 90))}</td>
-      <td><button class="ghost" onclick="flag('${c.phone}','attended',${!c.attended})">${c.attended ? 'unmark' : 'mark'} attended</button></td>
+      <td style="white-space:nowrap">
+        <button class="ghost" onclick="flag('${c.phone}','attended',${!c.attended})">${c.attended ? 'unmark' : 'mark'} attended</button>
+        <button class="danger" onclick="delContact('${c.phone}','${esc(c.first_name).replace(/'/g, "\\'")}')">delete</button>
+      </td>
     </tr>`).join('')
 }
 window.flag = async (phone, key, val) => { await post(`/api/contact/${phone}/flag`, { [key]: val }); refreshContacts() }
+window.delContact = async (phone, name) => {
+  if (!confirm(`Delete ${name} (${phone})?\n\nThis removes the contact, anything queued for them, and their row in Supabase. The sent log is kept.`)) return
+  await fetch(`/api/contact/${phone}`, { method: 'DELETE' })
+  refreshContacts()
+  refreshStatus()
+}
+$('#cAdd').onclick = async () => {
+  const phone = $('#cPhone').value.trim()
+  if (!phone) return alert('Phone number is required.')
+  const r = await post('/api/contacts', {
+    name: $('#cName').value, first_name: $('#cName').value,
+    phone, email: $('#cEmail').value, sendM1: $('#cM1').checked
+  })
+  const el = $('#cAddMsg')
+  if (r.ok) {
+    el.style.color = 'var(--accent)'
+    el.textContent = `${r.created ? 'Added' : 'Already existed — updated'} ${r.contact.phone}.` +
+      ($('#cM1').checked && r.created ? ' M1 queued.' : '')
+    $('#cName').value = $('#cPhone').value = $('#cEmail').value = ''
+    refreshContacts(); refreshStatus()
+  } else {
+    el.style.color = 'var(--bad)'
+    el.textContent = r.error || 'Could not add that contact.'
+  }
+}
 $('#search').oninput = () => { clearTimeout(window._s); window._s = setTimeout(refreshContacts, 250) }
 $('#msgSearch').oninput = () => { clearTimeout(window._m); window._m = setTimeout(refreshSent, 250) }
 $('#inSearch').oninput = () => { clearTimeout(window._i); window._i = setTimeout(refreshReplies, 250) }
@@ -211,11 +239,6 @@ async function refreshOps() {
 }
 
 // tools
-$('#addContact').onclick = async () => {
-  const r = await post('/api/contacts', { name: $('#nName').value, first_name: $('#nName').value, phone: $('#nPhone').value, email: $('#nEmail').value, sendM1: $('#nM1').checked })
-  alert(r.ok ? 'Added.' + ($('#nM1').checked ? ' M1 queued.' : '') : 'Error: ' + r.error)
-  $('#nPhone').value = ''
-}
 const uploadCsv = async (input, url, extra) => {
   if (!input.files[0]) return alert('Pick a file first.')
   const fd = new FormData(); fd.append('file', input.files[0])

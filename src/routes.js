@@ -10,7 +10,7 @@ import { runScheduler, enqueueInstant, timeline } from './scheduler.js'
 import { sendSS, handleInbound } from './inbound.js'
 import { normalisePhone, firstNameOf } from './phone.js'
 import { syncContact, sheetsState, logOps } from './sheets.js'
-import { supabaseState, sbCounts, sbPeek, sbPurge } from './supabase.js'
+import { supabaseState, sbCounts, sbPeek, sbPurge, sbDeleteContact } from './supabase.js'
 import { now, isoStamp } from './time.js'
 import { MESSAGES, BY_ID } from './sequence.js'
 import { render, missingFields, unsetConfigFields } from './render.js'
@@ -339,8 +339,9 @@ export function buildRoutes() {
 
   // Remove one contact and everything queued for them.
   r.delete('/api/contact/:phone', (req, res) => {
-    const ok = db.deleteContact(normalisePhone(req.params.phone) || req.params.phone)
-    if (ok) { save(); logOps('contact_deleted', req.params.phone) }
+    const phone = normalisePhone(req.params.phone) || req.params.phone
+    const ok = db.deleteContact(phone)
+    if (ok) { save(); logOps('contact_deleted', phone); sbDeleteContact(phone) }
     res.json({ ok })
   })
 

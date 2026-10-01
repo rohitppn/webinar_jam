@@ -107,6 +107,16 @@
   <section id="contacts">
     <div class="card">
       <h2>Contacts</h2>
+      <div class="row" style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--line)">
+        <div><label>Name</label><input id="cName" placeholder="Rahul"></div>
+        <div><label>Phone</label><input id="cPhone" placeholder="9876543210"></div>
+        <div><label>Email (optional)</label><input id="cEmail" placeholder="rahul@example.com"></div>
+        <div>
+          <label><input type="checkbox" id="cM1" checked style="width:auto;margin-right:6px">send M1 now</label>
+          <button class="act" id="cAdd">Add contact</button>
+        </div>
+      </div>
+      <div id="cAddMsg" class="mut" style="font-size:12px;margin-bottom:12px"></div>
       <div class="row" style="margin-bottom:12px">
         <div><label>Search</label><input id="search" placeholder="name, phone or email"></div>
         <div><a href="/api/export/contacts.csv"><button class="ghost">Export CSV</button></a></div>
@@ -176,15 +186,6 @@
   </section>
 
   <section id="tools">
-    <div class="card">
-      <h2>Add one contact (use this to test on your own number first)</h2>
-      <div class="row">
-        <div><label>Name</label><input id="nName"></div>
-        <div><label>Phone</label><input id="nPhone" placeholder="9876543210"></div>
-        <div><label>Email</label><input id="nEmail"></div>
-        <div><label><input type="checkbox" id="nM1" checked style="width:auto"> send M1</label><button class="act" id="addContact">Add</button></div>
-      </div>
-    </div>
     <div class="card">
       <h2>Import registrants (CSV)</h2>
       <div class="row">

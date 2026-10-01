@@ -141,6 +141,7 @@ export const db = {
     if (state.counters.day !== k) {
       state.counters.day = k
       state.counters.sentToday = 0
+      state.counters.burstCount = 0
       for (const c of Object.values(state.contacts)) c.sentCountToday = 0
       markDirty()
     }

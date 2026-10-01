@@ -201,6 +201,18 @@ export async function sbPeek(table, limit = 5) {
   return (await req(`${TBL[table]}?select=*&order=${order}&limit=${limit}`)) || []
 }
 
+/** Remove one contact's mirrored row, so a delete in the dashboard is a delete everywhere. */
+export async function sbDeleteContact(phone) {
+  if (!config.supabaseEnabled || !ready) return
+  try {
+    await req(`${TBL.contacts}?phone=eq.${encodeURIComponent(phone)}`, {
+      method: 'DELETE', headers: { Prefer: 'return=minimal' }
+    })
+  } catch (e) {
+    markDown('contact delete', e)
+  }
+}
+
 /** Delete every row in the four webinar_ tables. Used only by the explicit reset. */
 export async function sbPurge() {
   if (!config.supabaseEnabled) return { enabled: false }
