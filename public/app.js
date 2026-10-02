@@ -83,7 +83,7 @@ async function refreshContacts() {
     list.map((c) => `<tr>
       <td>${esc(c.first_name)}<div class="mut" style="font-size:11px">${esc(c.email || '')}</div></td>
       <td>${esc(c.phone)}</td>
-      <td>${c.confirmed ? '<span class="tag">CONFIRMED</span>' : ''}${c.attended ? '<span class="tag">ATTENDED</span>' : ''}${c.booked ? '<span class="tag">BOOKED</span>' : ''}${c.optedOut ? '<span class="tag" style="color:var(--bad)">STOP</span>' : ''}${(c.tags || []).filter((t) => !['CONFIRMED', 'STOP', 'BOOKED'].includes(t)).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</td>
+      <td>${c.confirmed ? '<span class="tag">CONFIRMED</span>' : ''}${c.attended ? '<span class="tag">ATTENDED</span>' : ''}${c.booked ? '<span class="tag">BOOKED</span>' : ''}${c.optedOut ? '<span class="tag" style="color:var(--bad)">STOP</span>' : ''}${(c.tags || []).includes('NO_WHATSAPP') ? '<span class="tag" style="color:var(--warn)">NO WHATSAPP</span>' : ''}${(c.tags || []).filter((t) => !['CONFIRMED', 'STOP', 'BOOKED', 'NO_WHATSAPP'].includes(t)).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</td>
       <td class="mut" style="font-size:11px">${Object.keys(c.sent || {}).join(' ')}</td>
       <td class="mut" style="font-size:12px;max-width:260px">${esc((c.last_inbound_text || '').slice(0, 90))}</td>
       <td style="white-space:nowrap">

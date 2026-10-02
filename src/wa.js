@@ -170,7 +170,14 @@ export async function sendText(phone, body) {
     return { dryRun: true }
   }
   if (!wa.sock || wa.status !== 'open') throw new Error('WhatsApp not connected')
-  const jid = (await checkOnWhatsApp(phone)) || jidOf(phone)
+  // A number with no WhatsApp account silently swallows the message, and the log
+  // would then claim it was delivered. Refuse instead, so the operator sees it.
+  const jid = await checkOnWhatsApp(phone)
+  if (!jid) {
+    const e = new Error('number is not on WhatsApp')
+    e.permanent = true
+    throw e
+  }
   if (config.typingSimulation) {
     try {
       await wa.sock.presenceSubscribe(jid)

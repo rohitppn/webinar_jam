@@ -82,10 +82,18 @@ async function tick() {
     console.log(`[send] ${item.messageId} -> ${item.phone} (burst ${db.counters.burstCount}/${config.burstSize}, today ${db.counters.sentToday}/${config.dailyCap})`)
   } catch (e) {
     item.attempts += 1
-    if (item.attempts >= 3) {
+    // Retrying a number that has no WhatsApp account will never succeed.
+    if (e.permanent || item.attempts >= 3) {
       db.finishQueueItem(item.id, 'failed', e.message)
       logMessage(contact, item.messageId, 'failed', e.message, item.body)
       db.ops('send_failed', `${item.messageId} ${item.phone}: ${e.message}`)
+      if (e.permanent && contact) {
+        // Flag the contact so a bad number is visible rather than quietly failing
+        // on every message for the rest of the campaign.
+        contact.tags = [...new Set([...(contact.tags || []), 'NO_WHATSAPP'])]
+        contact.notes = (contact.notes ? contact.notes + ' | ' : '') + 'number is not on WhatsApp'
+        syncContact(contact)
+      }
     } else {
       item.notBefore = now().plus({ minutes: 5 }).toISO()
       db.ops('send_retry', `${item.messageId} ${item.phone}: ${e.message}`)
