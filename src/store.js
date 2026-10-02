@@ -22,6 +22,7 @@ const EMPTY = {
   opsLog: []
 }
 
+export const hadStateFile = fs.existsSync(FILE)
 let state = load()
 let dirty = false
 

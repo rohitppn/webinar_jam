@@ -9,7 +9,7 @@ import { startScheduler } from './scheduler.js'
 import { initSheets } from './sheets.js'
 import { initSupabase, sbFetchContacts } from './supabase.js'
 import { buildRoutes } from './routes.js'
-import { db } from './store.js'
+import { db, hadStateFile } from './store.js'
 import { normalisePhone, firstNameOf } from './phone.js'
 import { enqueueInstant } from './scheduler.js'
 import { syncContact, logOps } from './sheets.js'
@@ -108,10 +108,16 @@ app.listen(config.port, () => {
   startScheduler()
 })
 
-/** If the volume came up empty but Supabase has contacts, pull them back. */
+/** Rebuild contacts from Supabase, but only when the volume is genuinely new.
+ *  An existing state file with no contacts is a deliberate state — someone deleted
+ *  them — and restoring would resurrect people who were removed on purpose. */
 async function restoreFromSupabaseIfEmpty() {
   try {
     if (db.allContacts().length > 0) return
+    if (hadStateFile) {
+      console.log('[supabase] volume has history and no contacts — treating that as deliberate, not restoring')
+      return
+    }
     const rows = await sbFetchContacts()
     if (!rows.length) return
     for (const c of rows) db.state.contacts[c.phone] = c
