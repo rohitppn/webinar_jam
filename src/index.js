@@ -10,6 +10,10 @@ import { initSheets } from './sheets.js'
 import { initSupabase, sbFetchContacts } from './supabase.js'
 import { buildRoutes } from './routes.js'
 import { db } from './store.js'
+import { normalisePhone, firstNameOf } from './phone.js'
+import { enqueueInstant } from './scheduler.js'
+import { syncContact, logOps } from './sheets.js'
+import { eventStart } from './time.js'
 import { signIn, signOut, sessionFor, basicAuthOk, sessionCookie, clearCookie, parseCookies, supabaseAuthEnabled } from './auth.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -22,6 +26,34 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }))
 app.get('/health', (req, res) => res.json({ ok: true, wa: wa.status, uptime: process.uptime() }))
 
 const routes = buildRoutes()
+
+// --- public registration form (no auth: it is the front door) ---
+const regHits = new Map() // ip -> timestamps, a light brake on abuse
+app.get('/register', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'register.html')))
+app.get('/api/event-info', (req, res) => {
+  const ev = eventStart()
+  const time = ev.minute === 0 ? ev.toFormat('h a') : ev.toFormat('h:mm a')
+  res.json({ when: `${ev.toFormat('cccc d LLLL')}, ${time} IST` })
+})
+app.post('/register', async (req, res) => {
+  const b = req.body || {}
+  if (b.website) return res.json({ ok: true, first_name: 'there' })   // honeypot: bots fill it, people don't
+  const now = Date.now()
+  const hits = (regHits.get(req.ip) || []).filter((t) => now - t < 60 * 60 * 1000)
+  if (hits.length >= 10) return res.status(429).json({ ok: false, error: 'Too many sign-ups from here. Try again later.' })
+  regHits.set(req.ip, [...hits, now])
+
+  const phone = normalisePhone(b.phone)
+  if (!phone) return res.status(400).json({ ok: false, error: 'That does not look like a valid mobile number.' })
+  const first_name = firstNameOf(b.name || b.first_name)
+  const { contact } = db.upsertContact(phone, {
+    first_name, full_name: String(b.name || '').trim(), email: b.email || '', source: 'register-form'
+  })
+  enqueueInstant(contact, 'M1')
+  syncContact(contact)
+  logOps('registration', `${phone} ${first_name} (registration form)`)
+  res.json({ ok: true, first_name })
+})
 
 // --- sign in / out (must sit before the auth gate) ---
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'login.html')))
@@ -43,6 +75,7 @@ app.post('/api/auth/logout', (req, res) => {
 // The webhook carries its own token, so it bypasses the dashboard gate.
 app.use((req, res, next) => {
   if (req.path.startsWith('/webhook/') || req.path === '/health') return next()
+  if (req.path === '/register' || req.path === '/api/event-info') return next()
   if (sessionFor(req)) return next()
   if (basicAuthOk(req)) return next()          // break-glass
   // Browsers get the sign-in page; API callers get a clean 401.

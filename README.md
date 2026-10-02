@@ -145,6 +145,17 @@ Indian 10-digit numbers get `91` prefixed automatically.
 
 ---
 
+## Getting contacts in
+
+Three ways, in order of preference:
+
+1. **The built-in form** at `/register` — public, no login, no third party. Collects name,
+   phone and email, adds the contact and fires M1 immediately. Share the link or embed it.
+2. **The webhook** — `POST /webhook/webinarjam/<WEBHOOK_TOKEN>`. Accepts JSON or form-encoded
+   bodies and tolerates the common field names (`first_name`/`name`/`full_name`,
+   `phone`/`phone_number`/`mobile`). Add `?probe=1` to test without creating anything.
+3. **CSV import** on the Tools tab, for a list exported from somewhere else.
+
 ## Dashboard sign-in
 
 Two routes, deliberately:
