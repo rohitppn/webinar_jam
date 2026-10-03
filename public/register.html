@@ -57,8 +57,7 @@
         })
       })).json()
       if (r.ok) {
-        $('#card').innerHTML = `<div class="done"><h2>You're in, ${r.first_name}.</h2>
-          <p class="sub">Check WhatsApp in the next few minutes and reply <b>CONFIRMED</b> to lock your seat.</p></div>`
+        location.href = '/thanks?name=' + encodeURIComponent(r.first_name)
       } else {
         $('#msg').className = 'msg err'; $('#msg').textContent = r.error; $('#go').disabled = false
       }

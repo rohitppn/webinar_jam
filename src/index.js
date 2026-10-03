@@ -14,7 +14,7 @@ import { db, hadStateFile } from './store.js'
 import { normalisePhone, firstNameOf } from './phone.js'
 import { enqueueInstant } from './scheduler.js'
 import { syncContact, logOps } from './sheets.js'
-import { eventStart } from './time.js'
+import { eventStart, now } from './time.js'
 import { signIn, signOut, sessionFor, basicAuthOk, sessionCookie, clearCookie, parseCookies, supabaseAuthEnabled } from './auth.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -34,7 +34,33 @@ app.get('/register', (req, res) => res.sendFile(path.join(__dirname, '..', 'publ
 app.get('/api/event-info', (req, res) => {
   const ev = eventStart()
   const time = ev.minute === 0 ? ev.toFormat('h a') : ev.toFormat('h:mm a')
-  res.json({ when: `${ev.toFormat('cccc d LLLL')}, ${time} IST` })
+  res.json({
+    when: `${ev.toFormat('cccc d LLLL')}, ${time} IST`,
+    // the campaign number, so the thank-you page can deep-link into the chat
+    whatsapp: (wa.me || '').split(':')[0].split('@')[0] || null
+  })
+})
+
+app.get(['/thanks', '/thank-you'], (req, res) =>
+  res.sendFile(path.join(__dirname, '..', 'public', 'thanks.html')))
+
+// A calendar invite the registrant can actually save.
+app.get('/event.ics', (req, res) => {
+  const ev = eventStart()
+  const end = ev.plus({ hours: 1 })
+  const fmt = (d) => d.toUTC().toFormat("yyyyLLdd'T'HHmmss'Z'")
+  const ics = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TheBroThing//Masterclass//EN', 'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:masterclass-${ev.toFormat('yyyyLLdd')}@thebrothing`,
+    `DTSTAMP:${fmt(now())}`, `DTSTART:${fmt(ev)}`, `DTEND:${fmt(end)}`,
+    'SUMMARY:Double Your Dating Masterclass',
+    'DESCRIPTION:Live for one hour, no replay. Your join link arrives on WhatsApp from TheBroThing.',
+    'BEGIN:VALARM', 'TRIGGER:-PT30M', 'ACTION:DISPLAY', 'DESCRIPTION:Masterclass starts in 30 minutes',
+    'END:VALARM',
+    'END:VEVENT', 'END:VCALENDAR'
+  ].join('\r\n')
+  res.set('Content-Disposition', 'attachment; filename="masterclass.ics"').type('text/calendar').send(ics)
 })
 app.post('/register', async (req, res) => {
   const b = req.body || {}
@@ -76,7 +102,7 @@ app.post('/api/auth/logout', (req, res) => {
 // The webhook carries its own token, so it bypasses the dashboard gate.
 app.use((req, res, next) => {
   if (req.path.startsWith('/webhook/') || req.path === '/health') return next()
-  if (req.path === '/register' || req.path === '/api/event-info') return next()
+  if (['/register', '/thanks', '/thank-you', '/event.ics', '/api/event-info'].includes(req.path)) return next()
   const sess = sessionFor(req)
   if (sess) { res.locals.sessionEmail = sess.email; return next() }
   if (basicAuthOk(req)) return next()          // break-glass
