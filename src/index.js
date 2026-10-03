@@ -1,4 +1,5 @@
 import express from 'express'
+import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { config, isDataDirEphemeral } from './config.js'
@@ -76,14 +77,31 @@ app.post('/api/auth/logout', (req, res) => {
 app.use((req, res, next) => {
   if (req.path.startsWith('/webhook/') || req.path === '/health') return next()
   if (req.path === '/register' || req.path === '/api/event-info') return next()
-  if (sessionFor(req)) return next()
+  const sess = sessionFor(req)
+  if (sess) { res.locals.sessionEmail = sess.email; return next() }
   if (basicAuthOk(req)) return next()          // break-glass
   // Browsers get the sign-in page; API callers get a clean 401.
   if (req.accepts('html') && !req.path.startsWith('/api/')) return res.redirect('/login')
   return res.status(401).json({ ok: false, error: 'not signed in' })
 })
 app.use(routes)
-app.use(express.static(path.join(__dirname, '..', 'public')))
+
+// Fingerprint the assets so the browser can cache them for a year, and serve the
+// HTML with no-cache so a new build is picked up on the very next load.
+const BUILD = String(Date.now())
+app.get(['/', '/index.html'], (req, res) => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8')
+    .replace('src="app.js"', `src="app.js?v=${BUILD}"`)
+  res.set('Cache-Control', 'no-cache').type('html').send(html)
+})
+app.use(express.static(path.join(__dirname, '..', 'public'), {
+  etag: true,
+  maxAge: '1y',
+  setHeaders: (res, p) => {
+    if (p.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache')
+    else res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+  }
+}))
 
 wa.onInbound = handleInbound
 

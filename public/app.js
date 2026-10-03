@@ -11,8 +11,8 @@ document.querySelectorAll('nav button').forEach((b) => b.onclick = () => {
   refreshTab(b.dataset.t)
 })
 
-async function refreshStatus() {
-  S = await api('/api/status')
+function paintStatus(data) {
+  S = data
   const w = S.wa.status
   const pill = (el, cls, text) => { const e = $(el); e.className = 'pill ' + cls; e.textContent = text }
   pill('#waPill', w === 'open' ? 'ok' : (w === 'qr' ? 'warn' : 'bad'), 'WhatsApp: ' + w)
@@ -57,6 +57,8 @@ async function refreshStatus() {
     if (document.activeElement !== $('#' + k)) $('#' + k).value = S.settings[k] || ''
   }
 }
+
+async function refreshStatus() { paintStatus(await api('/api/status')) }
 
 $('#pauseBtn').onclick = async () => { await post('/api/settings', { paused: !S.settings.paused }); refreshStatus() }
 $('#saveSettings').onclick = async () => {
@@ -217,7 +219,7 @@ window.resetTpl = async (id) => {
 async function refreshShots() {
   const list = await api('/api/screenshots')
   $('#shotList').innerHTML = list.map((s) => `<div class="shot">
-    <a href="/media/${encodeURIComponent(s.file)}" target="_blank"><img src="/media/${encodeURIComponent(s.file)}"></a>
+    <a href="/media/${encodeURIComponent(s.file)}" target="_blank"><img loading="lazy" decoding="async" src="/media/${encodeURIComponent(s.file)}"></a>
     <div style="flex:1">
       <b>${esc(s.first_name)}</b> · ${esc(s.phone)}<br>
       <span class="mut">${new Date(s.at).toLocaleString()}</span>
@@ -239,11 +241,11 @@ async function refreshTimeline() {
       <td><span class="pill ${x.state === 'sent' ? 'ok' : x.state === 'due' ? 'warn' : ''}">${x.state}</span></td></tr>`).join('')
 }
 
-async function refreshOps() {
-  const ops = await api('/api/ops')
-  $('#ops').innerHTML = ops.slice(0, 20).map((o) => `<div class="mut" style="font-size:12px;padding:3px 0;border-bottom:1px solid var(--line)">
+function paintOps(ops) {
+  $('#ops').innerHTML = (ops || []).slice(0, 20).map((o) => `<div class="mut" style="font-size:12px;padding:3px 0;border-bottom:1px solid var(--line)">
     ${new Date(o.at).toLocaleString()} · <b style="color:var(--ink)">${esc(o.event)}</b> ${esc(o.detail)}</div>`).join('') || '<span class="mut">Nothing yet.</span>'
 }
+async function refreshOps() { paintOps(await api('/api/ops')) }
 
 // tools
 const uploadCsv = async (input, url, extra) => {
@@ -268,27 +270,27 @@ $('#ssBtn').onclick = async () => {
   alert(r.ok ? 'Calendly link queued; contact marked booked.' : 'Error: ' + r.error)
 }
 
-async function loadMessages() {
-  const ms = await api('/api/messages')
-  $('#snMsg').innerHTML = ms.map((m) => `<option value="${m.id}">${m.id} — ${esc(m.label)}</option>`).join('')
-  $('#snMsg').onchange()
-}
-
 function refreshTab(t) {
   ({ connect: refreshQR, contacts: refreshContacts, queue: refreshQueue, sent: refreshSent,
      replies: refreshReplies, shots: refreshShots, hooks: refreshHooks,
      messages: refreshTemplates, timeline: refreshTimeline, dash: refreshOps }[t] || (() => {}))()
 }
 
-fetch('/api/auth/mode').then((r) => r.json()).then((m) => {
-  $('#whoami').textContent = m.session || 'admin (break-glass)'
-})
 $('#signout').onclick = async () => {
   await post('/api/auth/logout')
   location.href = '/login'
 }
 
-refreshStatus(); loadMessages(); refreshOps()
+// Single round trip for the whole first paint.
+async function boot() {
+  const b = await api('/api/bootstrap')
+  paintStatus(b.status)
+  $('#whoami').textContent = b.auth.session || 'admin (break-glass)'
+  $('#snMsg').innerHTML = b.messages.map((m) => `<option value="${m.id}">${m.id} — ${esc(m.label)}</option>`).join('')
+  $('#snMsg').onchange()
+  paintOps(b.ops)
+}
+boot()
 setInterval(refreshStatus, 5000)
 setInterval(() => {
   const on = document.querySelector('section.on').id

@@ -133,10 +133,10 @@ export function buildRoutes() {
   }
 
   // ---------- everything below is admin (basic-auth applied in index.js) ----------
-  r.get('/api/status', (req, res) => {
+  function buildStatus() {
     db.rollDayCounters()
     const contacts = db.allContacts()
-    res.json({
+    return {
       wa: { status: wa.status, me: wa.me, lastError: wa.lastError, qrAt: wa.qrGeneratedAt },
       sheets: sheetsState(),
       supabase: supabaseState(),
@@ -172,8 +172,9 @@ export function buildRoutes() {
       },
       now: now().toFormat('ccc dd LLL yyyy, HH:mm:ss ZZZZ'),
       dryRun: config.dryRun
-    })
-  })
+    }
+  }
+  r.get('/api/status', (req, res) => res.json(buildStatus()))
 
   // Does this number actually have WhatsApp? A live query, so it also proves the
   // connection is working without sending anyone a message.
@@ -182,6 +183,18 @@ export function buildRoutes() {
     if (!phone) return res.status(400).json({ ok: false, error: 'bad phone' })
     const jid = await checkOnWhatsApp(phone)
     res.json({ ok: true, phone, onWhatsApp: !!jid, jid: jid || null })
+  })
+
+  // The dashboard needed four separate calls to paint. At 250ms round-trip each
+  // that is a second of blank screen, so they are served together.
+  r.get('/api/bootstrap', (req, res) => {
+    const status = buildStatus()
+    res.json({
+      status,
+      messages: MESSAGES.map((m) => ({ id: m.id, label: m.label, trigger: m.trigger, at: m.at })),
+      ops: db.state.opsLog.slice(0, 20),
+      auth: { supabase: !!config.supabaseAnonKey, session: res.locals.sessionEmail || null }
+    })
   })
 
   r.get('/api/qr', (req, res) => res.json({ status: wa.status, qr: wa.qrDataUrl, at: wa.qrGeneratedAt }))
@@ -304,6 +317,8 @@ export function buildRoutes() {
   r.get('/media/:file', (req, res) => {
     const p = path.join(config.mediaDir, path.basename(req.params.file))
     if (!fs.existsSync(p)) return res.status(404).end()
+    // Screenshots never change once received, so let the browser keep them.
+    res.set('Cache-Control', 'private, max-age=31536000, immutable')
     res.sendFile(p)
   })
   r.post('/api/screenshots/:id/send-ss', (req, res) => {
