@@ -56,7 +56,7 @@ function videoEmbedUrl() {
   if (vim) {
     const q = new URLSearchParams({
       badge: '0', byline: '0', portrait: '0', title: '0', dnt: '1',
-      autoplay: '1', muted: '1', playsinline: '1', texttrack: config.videoTexttrack
+      autoplay: '1', muted: '0', playsinline: '1', texttrack: config.videoTexttrack
     })
     if (vim[2]) q.set('h', vim[2])
     return `https://player.vimeo.com/video/${vim[1]}?${q}`
@@ -64,7 +64,7 @@ function videoEmbedUrl() {
 
   // YouTube, unlisted or otherwise
   const yt = raw.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{6,})/)
-  if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}?rel=0&modestbranding=1&autoplay=1&mute=1&playsinline=1&cc_load_policy=1`
+  if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}?rel=0&modestbranding=1&autoplay=1&mute=0&playsinline=1&cc_load_policy=1`
 
   // Google Drive
   const gd = raw.match(/\/d\/([A-Za-z0-9_-]{10,})/) || raw.match(/[?&]id=([A-Za-z0-9_-]{10,})/)

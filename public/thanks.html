@@ -37,6 +37,12 @@
   .video .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:76px;height:76px;
                border-radius:50%;background:var(--gold);border:0;cursor:pointer;display:grid;place-items:center}
   .video .play svg{width:26px;height:26px;fill:#fff;margin-left:4px}
+  .unmute{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:none;
+          align-items:center;gap:8px;background:rgba(18,18,18,.86);color:#fff;border:0;
+          font-family:var(--body);font-size:14px;font-weight:500;padding:11px 18px;
+          border-radius:999px;cursor:pointer;backdrop-filter:blur(4px)}
+  .unmute svg{width:17px;height:17px;fill:#fff}
+  .video.needs-sound .unmute{display:flex}
 
   .btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
        background:var(--gold);color:#fff;text-decoration:none;font-weight:600;font-size:17px;
@@ -109,7 +115,11 @@
     <div class="video" id="videoBox">
       <img class="poster" id="poster" alt="" hidden>
       <button class="play" id="play" hidden aria-label="Play the video"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-      <iframe id="video" allow="autoplay; fullscreen" allowfullscreen referrerpolicy="no-referrer" title="A message from Arunav" hidden></iframe>
+      <iframe id="video" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="no-referrer" title="A message from Arunav" hidden></iframe>
+      <button class="unmute" id="unmute" type="button">
+        <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4zM14 2v2a8 8 0 010 16v2a10 10 0 000-20z"/></svg>
+        Tap for sound
+      </button>
     </div>
 
     <a class="btn" id="btnT1" href="#" target="_blank" rel="noopener" data-item="T1">
@@ -258,11 +268,10 @@
         poster.src = d.poster; poster.hidden = false; play.hidden = false
         poster.onclick = start; play.onclick = start
       } else {
-        // No poster supplied: load the player straight away so it autoplays muted.
         frame.hidden = false
         frame.src = d.video
-        frame.allow = 'autoplay; fullscreen; picture-in-picture'
         track('video_start', { video_title: 'masterclass_welcome' })
+        withSound(frame, box)
       }
     } else {
       $('#videoBox').style.display = 'none'
@@ -274,6 +283,32 @@
   })
   $('#cal').addEventListener('click', () => track('select_content', { content_type: 'calendar' }))
   track('generate_lead', { lead_type: 'masterclass' })
+
+  // Browsers block autoplay with sound. Try it anyway; if the browser refuses, start
+  // muted and turn the sound on the moment the visitor touches the page, so he hears it
+  // from a second or two in rather than seeing a frozen player.
+  function withSound(frame, box) {
+    if (!/player\.vimeo\.com/.test(frame.src)) return
+    const s = document.createElement('script')
+    s.src = 'https://player.vimeo.com/api/player.js'
+    s.onload = () => {
+      const player = new Vimeo.Player(frame)
+      const unmute = () => player.setVolume(1).then(() => player.setMuted(false))
+        .then(() => { box.classList.remove('needs-sound'); player.play().catch(() => {}) })
+        .catch(() => {})
+      player.play().catch(() => {
+        // Refused. Fall back to muted playback and offer one tap for sound.
+        player.setMuted(true).then(() => player.play()).catch(() => {})
+        box.classList.add('needs-sound')
+        document.getElementById('unmute').addEventListener('click', unmute)
+        for (const ev of ['pointerdown', 'touchstart', 'keydown', 'scroll']) {
+          window.addEventListener(ev, unmute, { once: true, passive: true })
+        }
+      })
+      player.on('ended', () => track('video_complete', { video_title: 'masterclass_welcome' }))
+    }
+    document.head.appendChild(s)
+  }
 
   // Sticky bar appears once T1's button has scrolled away, and hides over T5.
   const bar = { t1: false, t5: false }
