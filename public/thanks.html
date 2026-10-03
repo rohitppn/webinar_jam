@@ -1,91 +1,278 @@
-<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>You're registered · Double Your Dating Masterclass</title>
+<meta name="robots" content="noindex, nofollow">
+<title>You are in | Double Your Dating Masterclass</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap">
 <style>
   :root{
-    --ink:#121212; --muted:#6b6257; --line:#e7ded1;
-    --cream:#f5efe6; --card:#ffffff; --gold:#c9a15a; --gold-2:#b8893f;
-    --ok:#1f8a4c;
+    --charcoal:#121212; --cream:#f5efe6; --gold:#c9a15a; --gold-2:#b8893f;
+    --on-dark:#f3efe9; --on-dark-mute:#a49c91;
+    --on-light:#1a1714; --on-light-mute:#6b6257;
+    --line-dark:#2a2724; --line-light:#e3d9ca;
+    --display:Fraunces,Georgia,"Times New Roman",serif;
+    --body:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   }
   *{box-sizing:border-box}
-  body{margin:0;min-height:100vh;background:var(--cream);color:var(--ink);
-       font-family:Poppins,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-       display:grid;place-items:center;padding:28px 18px}
-  .card{width:min(560px,100%);background:var(--card);border-radius:22px;padding:40px 36px;
-        box-shadow:0 18px 50px rgba(60,45,20,.10)}
-  .tick{width:62px;height:62px;border-radius:50%;background:#eaf6ee;display:grid;place-items:center;margin:0 auto 20px}
-  .tick svg{width:30px;height:30px;stroke:var(--ok);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
-  h1{font-size:30px;font-weight:700;text-align:center;margin:0 0 8px;letter-spacing:-.02em;line-height:1.15}
-  .when{text-align:center;color:var(--muted);font-size:15.5px;margin:0 0 26px}
-  .video{position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;
-         background:#000;margin:0 0 26px;display:none}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:var(--body);font-size:16px;line-height:1.6;background:var(--cream);
+       -webkit-font-smoothing:antialiased}
+  section{padding:56px 20px}
+  .dark{background:var(--charcoal);color:var(--on-dark)}
+  .light{background:var(--cream);color:var(--on-light)}
+  .wrap{max-width:720px;margin:0 auto}
+  .center{text-align:center}
+
+  .logo{font-family:var(--display);font-size:15px;letter-spacing:.01em;color:var(--gold);margin:0 0 28px}
+  .eyebrow{font-size:13.5px;letter-spacing:.04em;color:var(--gold);margin:0 0 14px}
+  h1{font-family:var(--display);font-weight:600;font-size:clamp(29px,6.4vw,44px);line-height:1.12;
+     letter-spacing:-.015em;margin:0 0 16px;text-wrap:balance}
+  .subhead{font-size:16.5px;color:var(--on-dark-mute);margin:0 auto 26px;max-width:38em}
+
+  .video{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;
+         background:#000;margin:0 0 18px}
   .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-  .banner{background:var(--cream);border-radius:14px;padding:18px 20px;margin-bottom:28px}
-  .banner b{display:block;font-size:15px;margin-bottom:4px}
-  .banner p{margin:0;font-size:14px;color:var(--muted);line-height:1.5}
-  ol{list-style:none;counter-reset:s;padding:0;margin:0 0 28px}
-  li{counter-increment:s;display:flex;gap:15px;padding:15px 0;border-bottom:1px solid var(--line)}
-  li:last-child{border-bottom:0}
-  li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;
-             background:var(--gold);color:#fff;font-size:14px;font-weight:600;
-             display:grid;place-items:center;margin-top:1px}
-  li div{font-size:15px;line-height:1.5}
-  li small{display:block;color:var(--muted);font-size:13.5px;margin-top:3px}
-  code{background:var(--cream);padding:2px 8px;border-radius:6px;font-weight:600;font-family:inherit}
-  .btn{display:block;text-align:center;text-decoration:none;background:linear-gradient(180deg,var(--gold),var(--gold-2));
-       color:#fff;font-weight:600;font-size:16px;padding:16px;border-radius:999px;margin-bottom:12px}
-  .btn.ghost{background:none;color:var(--muted);border:1px solid var(--line);font-weight:500;font-size:14.5px;padding:13px}
-  .foot{text-align:center;color:var(--muted);font-size:12.5px;margin:18px 0 0;line-height:1.55}
+  .video .poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;cursor:pointer}
+  .video .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:76px;height:76px;
+               border-radius:50%;background:var(--gold);border:0;cursor:pointer;display:grid;place-items:center}
+  .video .play svg{width:26px;height:26px;fill:#fff;margin-left:4px}
+
+  .btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+       background:var(--gold);color:#fff;text-decoration:none;font-weight:600;font-size:17px;
+       padding:18px 22px;border-radius:10px;border:0;cursor:pointer;font-family:var(--body)}
+  .btn:hover{background:var(--gold-2)}
+  .btn svg{width:21px;height:21px;fill:#fff;flex:none}
+  .under{font-size:13.5px;color:var(--on-dark-mute);margin:14px 0 0}
+  .under + .under{margin-top:8px}
+
+  .strip{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin:0 0 26px}
+  .strip .item{text-align:center}
+  .strip svg{width:26px;height:26px;stroke:var(--gold);stroke-width:1.6;fill:none;
+             stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+  .strip b{display:block;font-size:16px;margin-bottom:5px;color:var(--on-light)}
+  .strip p{margin:0;font-size:14px;color:var(--on-light-mute);line-height:1.5}
+  .textlink{display:inline-block;color:var(--gold-2);font-size:14.5px;font-weight:500;
+            text-decoration:underline;text-underline-offset:3px}
+
+  h2{font-family:var(--display);font-weight:600;font-size:clamp(25px,4.6vw,33px);line-height:1.18;
+     letter-spacing:-.012em;margin:0 0 12px;text-wrap:balance}
+  .intro{font-size:16px;color:var(--on-dark-mute);margin:0 0 30px;max-width:40em}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:26px}
+  .card{position:relative;background:#1b1917;border:1px solid var(--line-dark);border-radius:12px;padding:22px 18px 18px}
+  .tag{position:absolute;top:14px;right:14px;font-size:11px;color:var(--gold);letter-spacing:.03em}
+  .card h3{font-family:var(--display);font-weight:600;font-size:18px;line-height:1.25;margin:0 0 12px;
+           padding-right:46px;color:var(--on-dark)}
+  .card ul{margin:0;padding-left:17px}
+  .card li{font-size:14px;color:var(--on-dark-mute);line-height:1.55;margin-bottom:9px}
+  .card li:last-child{margin-bottom:0}
+  .closing{font-family:var(--display);font-size:19px;line-height:1.45;max-width:30em;margin:0 auto;color:var(--on-dark)}
+
+  .steps{margin-top:26px}
+  .step{display:flex;gap:20px;padding:20px 0;border-bottom:1px solid var(--line-light)}
+  .step:last-child{border-bottom:0}
+  .step.wide{padding:30px 0}
+  .num{font-family:var(--display);font-size:38px;line-height:1;color:var(--gold);flex:none;width:46px}
+  .step b{display:block;font-size:17px;margin-bottom:7px}
+  .step p{margin:0 0 10px;font-size:15.5px;color:var(--on-light-mute);line-height:1.6}
+  .step p:last-child{margin-bottom:0}
+
+  .t5 h2{font-family:var(--display);font-size:clamp(25px,5vw,34px);max-width:17em;margin:0 auto 12px}
+  .t5 .sub{font-size:16px;color:var(--on-dark-mute);margin:0 auto 26px;max-width:32em}
+  .t5 .btn{max-width:420px;margin:0 auto}
+
+  .sticky{position:fixed;left:0;right:0;bottom:0;background:var(--charcoal);
+          border-top:1px solid var(--line-dark);padding:10px 14px;display:none;gap:12px;
+          align-items:center;z-index:40}
+  .sticky span{font-size:13px;color:var(--on-dark-mute);flex:1;line-height:1.3}
+  .sticky a{background:var(--gold);color:#fff;text-decoration:none;font-weight:600;font-size:14px;
+            padding:11px 16px;border-radius:8px;white-space:nowrap}
+  body.show-sticky .sticky{display:flex}
+
+  @media(max-width:720px){
+    section{padding:44px 18px}
+    .strip{grid-template-columns:1fr;gap:24px}
+    .cards{grid-template-columns:1fr}
+    .card h3{padding-right:52px}
+    body.show-sticky{padding-bottom:70px}
+  }
 </style>
-<div class="card">
-  <div class="tick"><svg viewBox="0 0 24 24"><polyline points="4 12.5 9.5 18 20 6.5"/></svg></div>
-  <h1 id="head">You're registered.</h1>
-  <p class="when" id="when">Loading…</p>
 
-  <div class="video" id="videoBox"><iframe id="video" allow="autoplay; fullscreen"
-       allowfullscreen referrerpolicy="no-referrer" title="A message from Arunav"></iframe></div>
+<!-- T1 -->
+<section class="dark">
+  <div class="wrap center">
+    <p class="logo">thebrothing</p>
+    <p class="eyebrow">Seat saved. <span class="evt">Friday 9 October, 9 PM IST</span>.</p>
+    <h1>You are in. One more step before Friday.</h1>
+    <p class="subhead">Watch this, then join the group. It takes 20 seconds, and it is where your link to the live room will arrive.</p>
 
-  <div class="banner">
-    <b>One thing left to do</b>
-    <p>Your seat isn't locked until you reply on WhatsApp. It takes five seconds.</p>
+    <div class="video" id="videoBox">
+      <img class="poster" id="poster" alt="" hidden>
+      <button class="play" id="play" hidden aria-label="Play the video"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+      <iframe id="video" allow="autoplay; fullscreen" allowfullscreen referrerpolicy="no-referrer" title="A message from Arunav" hidden></iframe>
+    </div>
+
+    <a class="btn" id="btnT1" href="#" target="_blank" rel="noopener" data-item="T1">
+      <svg viewBox="0 0 24 24"><path d="M.06 24l1.69-6.16A11.87 11.87 0 010 11.93C0 5.35 5.36 0 11.94 0a11.9 11.9 0 018.45 3.5 11.82 11.82 0 013.5 8.44c0 6.58-5.36 11.93-11.95 11.93a12 12 0 01-5.7-1.45L.06 24zM6.6 20.2l.36.21a9.9 9.9 0 005.05 1.39h.01c5.47 0 9.93-4.45 9.93-9.92a9.86 9.86 0 00-2.9-7.02 9.82 9.82 0 00-7.02-2.91c-5.48 0-9.93 4.45-9.94 9.92a9.88 9.88 0 001.52 5.27l.24.38-1 3.65 3.75-.97zm11.3-5.56c-.07-.12-.27-.2-.57-.35-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07a8.13 8.13 0 01-2.39-1.47 9 9 0 01-1.66-2.06c-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.7.25-1.29.17-1.41z"/></svg>
+      Join the WhatsApp Group
+    </a>
+    <p class="under">Your room link, the reminders and a short checklist come to this group. Only admins post, so nobody can message you.</p>
+    <p class="under">Your email confirmation is on its way too. Check Promotions if it is not in your inbox.</p>
   </div>
+</section>
 
-  <ol>
-    <li><div>Join the WhatsApp group
-      <small>Where the men from this batch gather before and after the session.</small></div></li>
-    <li><div>Reply <code>CONFIRMED</code> to the message from <b>TheBroThing</b>
-      <small>It arrives within a few minutes and locks your seat. The room is capped at 400,
-      and seats go to the people who confirm.</small></div></li>
-    <li><div>Save the number as <b>TheBroThing</b>
-      <small>Friday's join link comes through on WhatsApp. Saved contacts are far less likely to be missed.</small></div></li>
-  </ol>
+<!-- T2 -->
+<section class="light">
+  <div class="wrap center">
+    <div class="strip">
+      <div class="item">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+        <b class="evt">Friday 9 October, 9 PM IST</b>
+        <p>Join 10 minutes early. The room holds 400 and fills from the front.</p>
+      </div>
+      <div class="item">
+        <svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>
+        <b>Live on your phone or laptop</b>
+        <p>The link comes to the WhatsApp group an hour before we start. Nothing to install.</p>
+      </div>
+      <div class="item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        <b>90 minutes, live</b>
+        <p>The replay stays up for 48 hours. The gift, the guarantee and the Q&amp;A are for the men in the room.</p>
+      </div>
+    </div>
+    <a class="textlink" id="cal" href="/event.ics">Add Friday to my calendar</a>
+  </div>
+</section>
 
-  <a class="btn" id="group" href="#" target="_blank" rel="noopener">Join the WhatsApp group →</a>
-  <a class="btn ghost" id="wa" href="#">Open my chat with TheBroThing</a>
-  <a class="btn ghost" id="cal" href="/event.ics">Add to my calendar</a>
+<!-- T3 -->
+<section class="dark">
+  <div class="wrap">
+    <h2>What you will learn on Friday</h2>
+    <p class="intro">The complete Social Edge Dating System, the one Arunav uses with his own clients, laid out as your 3-Day Date Plan.</p>
+    <div class="cards">
+      <div class="card">
+        <span class="tag">1 hour</span>
+        <h3>Day 1. Look the part, and build a Top 1% Profile.</h3>
+        <ul>
+          <li>Fashion and grooming fixes for your body type, face shape and budget. No shopping spree.</li>
+          <li>Real before-and-afters of men who thought they were too old, too thin, or too heavy.</li>
+          <li>The photo order that decides whether she swipes right, and the five things that separate a top 1% profile from the other 99%.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="tag">1 hour</span>
+        <h3>Day 2. Start conversations that go somewhere.</h3>
+        <ul>
+          <li>The FLIRT Framework: five moves for every chat, with real texts you can copy.</li>
+          <li>The CQC Protocol for daily life: Compliment, Question, Conversation. No bars, no special places.</li>
+          <li>How to stop fearing rejection and judgement, with a daily exercise that builds self-belief.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="tag">1 hour</span>
+        <h3>Day 3. Turn conversations into dates.</h3>
+        <ul>
+          <li>The Yes Ladder: how to ask her out so that yes feels natural.</li>
+          <li>How to create spark she enjoys, without ever coming off as a creep.</li>
+          <li>The path from a first date to a relationship, so your weekends stop being empty.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="closing center">Plus live Q&amp;A, real text threads, and one month of FlirtCoachAI free for everyone in the room.</p>
+  </div>
+</section>
 
-  <p class="foot">Live, one hour, no replay. If you can't make it live, you'll miss it —
-    I don't record these.<br>Reply <b>STOP</b> on WhatsApp at any time to be removed.</p>
+<!-- T4 -->
+<section class="light">
+  <div class="wrap">
+    <h2>Three things to do before Friday</h2>
+    <p class="intro" style="color:var(--on-light-mute)">90 minutes is not long. These three make sure every one of them counts.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <div>
+          <b>Find a quiet place with fast Wi-Fi.</b>
+          <p>Not the car, not the metro. A room with the door shut and a connection that will not drop at the exact moment you need it. A laptop beats a phone if you have one.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <div>
+          <b>Be ready to take notes.</b>
+          <p>Pen and paper, or a blank note on your phone. You will see real text threads and exact message structures, and you will want them in your own hand by the time she replies.</p>
+          <p>Bring one thing with you: the last conversation on an app that went quiet. In the texting section you will see exactly what to send at that moment instead.</p>
+        </div>
+      </div>
+      <div class="step wide">
+        <div class="num">3</div>
+        <div>
+          <b>Apply what you learn. Even a little.</b>
+          <p>You do not need to do all of it. Apply even a small part of what you see on Friday and your dating life changes tenfold.</p>
+          <p>That is the promise of the 3-Day Date Plan: 2 to 3 high-quality women on dates, for one hour or less a day over the next three days. Men who do nothing with it get nothing. Men who do a little get more than they expect.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- T5 -->
+<section class="dark t5" id="t5">
+  <div class="wrap center">
+    <h2>The room link lands in the group an hour before we start. Be in it.</h2>
+    <p class="sub">Join now while it is in front of you. Friday will come faster than you think.</p>
+    <a class="btn" id="btnT5" href="#" target="_blank" rel="noopener" data-item="T5">
+      <svg viewBox="0 0 24 24"><path d="M.06 24l1.69-6.16A11.87 11.87 0 010 11.93C0 5.35 5.36 0 11.94 0a11.9 11.9 0 018.45 3.5 11.82 11.82 0 013.5 8.44c0 6.58-5.36 11.93-11.95 11.93a12 12 0 01-5.7-1.45L.06 24zM6.6 20.2l.36.21a9.9 9.9 0 005.05 1.39h.01c5.47 0 9.93-4.45 9.93-9.92a9.86 9.86 0 00-2.9-7.02 9.82 9.82 0 00-7.02-2.91c-5.48 0-9.93 4.45-9.94 9.92a9.88 9.88 0 001.52 5.27l.24.38-1 3.65 3.75-.97zm11.3-5.56c-.07-.12-.27-.2-.57-.35-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07a8.13 8.13 0 01-2.39-1.47 9 9 0 01-1.66-2.06c-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.7.25-1.29.17-1.41z"/></svg>
+      Join the WhatsApp Group
+    </a>
+    <p class="under"><span class="evt">Friday 9 October, 9 PM IST</span>. See you there.</p>
+  </div>
+</section>
+
+<div class="sticky" id="sticky">
+  <span class="evt">Friday 9 October, 9 PM IST</span>
+  <a id="btnBar" href="#" target="_blank" rel="noopener" data-item="sticky_bar">Join the WhatsApp Group</a>
 </div>
+
 <script>
-  const q = new URLSearchParams(location.search)
-  const name = (q.get('name') || q.get('first_name') || '').trim()
-  if (name) document.getElementById('head').textContent = `You're registered, ${name.split(' ')[0]}.`
+  const $ = (s) => document.querySelector(s)
+  const track = (name, params) => { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: name, ...params }) }
+
+  // Event facts come from the server so this page is reusable every month.
   fetch('/api/event-info').then((r) => r.json()).then((d) => {
-    document.getElementById('when').textContent = `${d.when} · Live online`
-    if (d.video) {
-      document.getElementById('video').src = d.video
-      document.getElementById('videoBox').style.display = 'block'
+    if (d.when) document.querySelectorAll('.evt').forEach((el) => { el.textContent = d.when })
+    for (const id of ['btnT1', 'btnT5', 'btnBar']) {
+      const el = document.getElementById(id)
+      if (d.group) el.href = d.group
+      else el.style.display = 'none'
     }
-    const g = document.getElementById('group')
-    if (d.group) g.href = d.group
-    else g.style.display = 'none'
-    const wa = document.getElementById('wa')
-    if (d.whatsapp) wa.href = `https://wa.me/${d.whatsapp}`
-    else wa.style.display = 'none'
-  }).catch(() => { document.getElementById('when').textContent = 'Friday, 9 PM IST · Live online' })
+    if (d.video) {
+      const box = $('#videoBox'), frame = $('#video'), poster = $('#poster'), play = $('#play')
+      const start = () => {
+        frame.src = d.video + (d.video.includes('?') ? '&' : '?') + 'autoplay=1'
+        frame.hidden = false; poster.hidden = true; play.hidden = true
+        track('video_start', { video_title: 'masterclass_welcome' })
+      }
+      if (d.poster) {            // poster paints with the page, the player loads on click
+        poster.src = d.poster; poster.hidden = false; play.hidden = false
+        poster.onclick = start; play.onclick = start
+      } else {
+        frame.hidden = false; frame.src = d.video
+      }
+    } else {
+      $('#videoBox').style.display = 'none'
+    }
+  }).catch(() => {})
+
+  document.querySelectorAll('[data-item]').forEach((el) => {
+    el.addEventListener('click', () => track('select_content', { content_type: 'whatsapp_group', item_id: el.dataset.item }))
+  })
+  $('#cal').addEventListener('click', () => track('select_content', { content_type: 'calendar' }))
+  track('generate_lead', { lead_type: 'masterclass' })
+
+  // Sticky bar appears once T1's button has scrolled away, and hides over T5.
+  const bar = { t1: false, t5: false }
+  const sync = () => document.body.classList.toggle('show-sticky', bar.t1 && !bar.t5)
+  new IntersectionObserver(([e]) => { bar.t1 = !e.isIntersecting; sync() }).observe($('#btnT1'))
+  new IntersectionObserver(([e]) => { bar.t5 = e.isIntersecting; sync() }).observe($('#t5'))
 </script>

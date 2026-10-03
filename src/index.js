@@ -39,18 +39,34 @@ app.get('/api/event-info', (req, res) => {
     // the campaign number, so the thank-you page can deep-link into the chat
     whatsapp: (wa.me || '').split(':')[0].split('@')[0] || null,
     group: config.whatsappGroupLink || null,
-    video: videoEmbedUrl()
+    video: videoEmbedUrl(),
+    poster: config.welcomeVideoPoster || null
   })
 })
 
-/** Google Drive share links do not embed; the /preview form does. */
+/** Share links are not embeddable; each host has its own player url. */
 function videoEmbedUrl() {
   const raw = (config.welcomeVideo || '').trim()
   if (!raw) return null
-  const m = raw.match(/\/d\/([A-Za-z0-9_-]{10,})/) || raw.match(/[?&]id=([A-Za-z0-9_-]{10,})/)
-  if (m) return `https://drive.google.com/file/d/${m[1]}/preview`
-  if (/^[A-Za-z0-9_-]{10,}$/.test(raw)) return `https://drive.google.com/file/d/${raw}/preview`
-  return raw   // already an embeddable url (YouTube, Vimeo, a direct mp4)
+
+  // Vimeo, including the unlisted form vimeo.com/<id>/<privacy hash>
+  const vim = raw.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([A-Za-z0-9]+))?/)
+  if (vim) {
+    const q = new URLSearchParams({ badge: '0', byline: '0', portrait: '0', title: '0', dnt: '1' })
+    if (vim[2]) q.set('h', vim[2])
+    return `https://player.vimeo.com/video/${vim[1]}?${q}`
+  }
+
+  // YouTube, unlisted or otherwise
+  const yt = raw.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{6,})/)
+  if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}?rel=0&modestbranding=1`
+
+  // Google Drive
+  const gd = raw.match(/\/d\/([A-Za-z0-9_-]{10,})/) || raw.match(/[?&]id=([A-Za-z0-9_-]{10,})/)
+  if (gd) return `https://drive.google.com/file/d/${gd[1]}/preview`
+  if (/^[A-Za-z0-9_-]{20,}$/.test(raw)) return `https://drive.google.com/file/d/${raw}/preview`
+
+  return raw   // already an embeddable url, or a direct mp4
 }
 
 app.get(['/thanks', '/thank-you'], (req, res) =>
@@ -59,7 +75,7 @@ app.get(['/thanks', '/thank-you'], (req, res) =>
 // A calendar invite the registrant can actually save.
 app.get('/event.ics', (req, res) => {
   const ev = eventStart()
-  const end = ev.plus({ hours: 1 })
+  const end = ev.plus({ minutes: 90 })
   const fmt = (d) => d.toUTC().toFormat("yyyyLLdd'T'HHmmss'Z'")
   const ics = [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TheBroThing//Masterclass//EN', 'CALSCALE:GREGORIAN',
@@ -67,7 +83,7 @@ app.get('/event.ics', (req, res) => {
     `UID:masterclass-${ev.toFormat('yyyyLLdd')}@thebrothing`,
     `DTSTAMP:${fmt(now())}`, `DTSTART:${fmt(ev)}`, `DTEND:${fmt(end)}`,
     'SUMMARY:Double Your Dating Masterclass',
-    'DESCRIPTION:Live for one hour, no replay. Your join link arrives on WhatsApp from TheBroThing.',
+    'DESCRIPTION:90 minutes live. The room link lands in the WhatsApp group an hour before we start.',
     'BEGIN:VALARM', 'TRIGGER:-PT30M', 'ACTION:DISPLAY', 'DESCRIPTION:Masterclass starts in 30 minutes',
     'END:VALARM',
     'END:VEVENT', 'END:VCALENDAR'

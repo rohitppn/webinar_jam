@@ -66,6 +66,7 @@ export const config = {
   whatsappGroupLink: process.env.WHATSAPP_GROUP_LINK || '',
   // Accepts a Google Drive share link or a bare file id; turned into an embed below.
   welcomeVideo: process.env.WELCOME_VIDEO_URL || '',
+  welcomeVideoPoster: process.env.WELCOME_VIDEO_POSTER || '',
   roomCap: num(process.env.ROOM_CAP, 400)
 }
 
