@@ -32,6 +32,8 @@ const routes = buildRoutes()
 const regHits = new Map() // ip -> timestamps, a light brake on abuse
 app.get('/register', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'register.html')))
 app.get('/api/event-info', (req, res) => {
+  // Readable cross-origin so the thank-you page on thebrothing.com can use it too.
+  res.set('Access-Control-Allow-Origin', '*')
   const ev = eventStart()
   const time = ev.minute === 0 ? ev.toFormat('h a') : ev.toFormat('h:mm a')
   res.json({
