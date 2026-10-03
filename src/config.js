@@ -67,6 +67,8 @@ export const config = {
   // Accepts a Google Drive share link or a bare file id; turned into an embed below.
   welcomeVideo: process.env.WELCOME_VIDEO_URL || '',
   welcomeVideoPoster: process.env.WELCOME_VIDEO_POSTER || '',
+  // Caption track to switch on. Vimeo auto-generated tracks are 'en-x-autogen'.
+  videoTexttrack: process.env.VIDEO_TEXTTRACK || 'en',
   roomCap: num(process.env.ROOM_CAP, 400)
 }
 

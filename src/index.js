@@ -50,16 +50,21 @@ function videoEmbedUrl() {
   if (!raw) return null
 
   // Vimeo, including the unlisted form vimeo.com/<id>/<privacy hash>
+  // Autoplay is only permitted muted, which is what the guide asks for: it plays on
+  // arrival with captions, and the viewer turns sound on from the player.
   const vim = raw.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([A-Za-z0-9]+))?/)
   if (vim) {
-    const q = new URLSearchParams({ badge: '0', byline: '0', portrait: '0', title: '0', dnt: '1' })
+    const q = new URLSearchParams({
+      badge: '0', byline: '0', portrait: '0', title: '0', dnt: '1',
+      autoplay: '1', muted: '1', playsinline: '1', texttrack: config.videoTexttrack
+    })
     if (vim[2]) q.set('h', vim[2])
     return `https://player.vimeo.com/video/${vim[1]}?${q}`
   }
 
   // YouTube, unlisted or otherwise
   const yt = raw.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{6,})/)
-  if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}?rel=0&modestbranding=1`
+  if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}?rel=0&modestbranding=1&autoplay=1&mute=1&playsinline=1&cc_load_policy=1`
 
   // Google Drive
   const gd = raw.match(/\/d\/([A-Za-z0-9_-]{10,})/) || raw.match(/[?&]id=([A-Za-z0-9_-]{10,})/)

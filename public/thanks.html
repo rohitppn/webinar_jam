@@ -249,7 +249,8 @@
     if (d.video) {
       const box = $('#videoBox'), frame = $('#video'), poster = $('#poster'), play = $('#play')
       const start = () => {
-        frame.src = d.video + (d.video.includes('?') ? '&' : '?') + 'autoplay=1'
+        // A click is a user gesture, so this one can play with sound.
+        frame.src = d.video.replace(/([?&])muted=1/, '$1muted=0').replace(/([?&])mute=1/, '$1mute=0')
         frame.hidden = false; poster.hidden = true; play.hidden = true
         track('video_start', { video_title: 'masterclass_welcome' })
       }
@@ -257,7 +258,11 @@
         poster.src = d.poster; poster.hidden = false; play.hidden = false
         poster.onclick = start; play.onclick = start
       } else {
-        frame.hidden = false; frame.src = d.video
+        // No poster supplied: load the player straight away so it autoplays muted.
+        frame.hidden = false
+        frame.src = d.video
+        frame.allow = 'autoplay; fullscreen; picture-in-picture'
+        track('video_start', { video_title: 'masterclass_welcome' })
       }
     } else {
       $('#videoBox').style.display = 'none'
