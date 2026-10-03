@@ -63,6 +63,7 @@ export const config = {
   joinLink: process.env.JOIN_LINK || '',
   calendlyLink: process.env.CALENDLY_LINK || '',
   upiId: process.env.UPI_ID || '',
+  whatsappGroupLink: process.env.WHATSAPP_GROUP_LINK || '',
   roomCap: num(process.env.ROOM_CAP, 400)
 }
 

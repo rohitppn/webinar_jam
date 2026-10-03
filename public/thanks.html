@@ -49,15 +49,17 @@
   </div>
 
   <ol>
-    <li><div>Open WhatsApp and look for a message from <b>TheBroThing</b>
-      <small>It arrives within a few minutes. Check your spam or "other" chats if you don't see it.</small></div></li>
-    <li><div>Reply <code>CONFIRMED</code>
-      <small>This locks your seat. The room is capped at 400 and seats go to people who confirm.</small></div></li>
+    <li><div>Join the WhatsApp group
+      <small>Where the men from this batch gather before and after the session.</small></div></li>
+    <li><div>Reply <code>CONFIRMED</code> to the message from <b>TheBroThing</b>
+      <small>It arrives within a few minutes and locks your seat. The room is capped at 400,
+      and seats go to the people who confirm.</small></div></li>
     <li><div>Save the number as <b>TheBroThing</b>
       <small>Friday's join link comes through on WhatsApp. Saved contacts are far less likely to be missed.</small></div></li>
   </ol>
 
-  <a class="btn" id="wa" href="#">Open WhatsApp</a>
+  <a class="btn" id="group" href="#" target="_blank" rel="noopener">Join the WhatsApp group →</a>
+  <a class="btn ghost" id="wa" href="#">Open my chat with TheBroThing</a>
   <a class="btn ghost" id="cal" href="/event.ics">Add to my calendar</a>
 
   <p class="foot">Live, one hour, no replay. If you can't make it live, you'll miss it —
@@ -69,7 +71,11 @@
   if (name) document.getElementById('head').textContent = `You're registered, ${name.split(' ')[0]}.`
   fetch('/api/event-info').then((r) => r.json()).then((d) => {
     document.getElementById('when').textContent = `${d.when} · Live online`
-    if (d.whatsapp) document.getElementById('wa').href = `https://wa.me/${d.whatsapp}`
-    else document.getElementById('wa').style.display = 'none'
+    const g = document.getElementById('group')
+    if (d.group) g.href = d.group
+    else g.style.display = 'none'
+    const wa = document.getElementById('wa')
+    if (d.whatsapp) wa.href = `https://wa.me/${d.whatsapp}`
+    else wa.style.display = 'none'
   }).catch(() => { document.getElementById('when').textContent = 'Friday, 9 PM IST · Live online' })
 </script>

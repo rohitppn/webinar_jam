@@ -37,7 +37,8 @@ app.get('/api/event-info', (req, res) => {
   res.json({
     when: `${ev.toFormat('cccc d LLLL')}, ${time} IST`,
     // the campaign number, so the thank-you page can deep-link into the chat
-    whatsapp: (wa.me || '').split(':')[0].split('@')[0] || null
+    whatsapp: (wa.me || '').split(':')[0].split('@')[0] || null,
+    group: config.whatsappGroupLink || null
   })
 })
 
