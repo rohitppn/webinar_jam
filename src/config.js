@@ -64,6 +64,8 @@ export const config = {
   calendlyLink: process.env.CALENDLY_LINK || '',
   upiId: process.env.UPI_ID || '',
   whatsappGroupLink: process.env.WHATSAPP_GROUP_LINK || '',
+  // Accepts a Google Drive share link or a bare file id; turned into an embed below.
+  welcomeVideo: process.env.WELCOME_VIDEO_URL || '',
   roomCap: num(process.env.ROOM_CAP, 400)
 }
 

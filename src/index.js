@@ -38,9 +38,20 @@ app.get('/api/event-info', (req, res) => {
     when: `${ev.toFormat('cccc d LLLL')}, ${time} IST`,
     // the campaign number, so the thank-you page can deep-link into the chat
     whatsapp: (wa.me || '').split(':')[0].split('@')[0] || null,
-    group: config.whatsappGroupLink || null
+    group: config.whatsappGroupLink || null,
+    video: videoEmbedUrl()
   })
 })
+
+/** Google Drive share links do not embed; the /preview form does. */
+function videoEmbedUrl() {
+  const raw = (config.welcomeVideo || '').trim()
+  if (!raw) return null
+  const m = raw.match(/\/d\/([A-Za-z0-9_-]{10,})/) || raw.match(/[?&]id=([A-Za-z0-9_-]{10,})/)
+  if (m) return `https://drive.google.com/file/d/${m[1]}/preview`
+  if (/^[A-Za-z0-9_-]{10,}$/.test(raw)) return `https://drive.google.com/file/d/${raw}/preview`
+  return raw   // already an embeddable url (YouTube, Vimeo, a direct mp4)
+}
 
 app.get(['/thanks', '/thank-you'], (req, res) =>
   res.sendFile(path.join(__dirname, '..', 'public', 'thanks.html')))
