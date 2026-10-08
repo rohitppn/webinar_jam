@@ -33,6 +33,16 @@ let reconnectAttempts = 0
 let starting = false
 const seenInbound = new Set() // message ids already handled, so a redelivery is ignored
 
+// When a recipient's phone cannot decrypt a message it asks us to send it again.
+// Baileys answers that through getMessage. With no store to answer from, the
+// recipient is left on "Waiting for this message. This may take a while." forever.
+const sentStore = new Map()
+function rememberSent(key, message) {
+  if (!key?.id) return
+  sentStore.set(key.id, message)
+  if (sentStore.size > 1000) sentStore.delete(sentStore.keys().next().value)
+}
+
 export async function startWhatsApp() {
   if (starting) return
   starting = true
@@ -56,7 +66,10 @@ export async function startWhatsApp() {
       browser: ['TheBroThing Sequencer', 'Chrome', '1.0.0'],
       markOnlineOnConnect: false,       // keeps phone notifications working
       syncFullHistory: false,
-      generateHighQualityLinkPreview: false
+      generateHighQualityLinkPreview: false,
+      // Answer decryption-retry requests so the recipient actually gets the text
+      // instead of sitting on "Waiting for this message".
+      getMessage: async (key) => sentStore.get(key?.id) || undefined
     })
     wa.sock = sock
 
@@ -200,7 +213,9 @@ export async function sendText(phone, body) {
       await wa.sock.sendPresenceUpdate('paused', jid)
     } catch {}
   }
-  return wa.sock.sendMessage(jid, { text: body })
+  const sent = await wa.sock.sendMessage(jid, { text: body })
+  rememberSent(sent?.key, sent?.message)
+  return sent
 }
 
 export async function logout() {
