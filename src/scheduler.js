@@ -19,7 +19,7 @@ export function runScheduler() {
     if (t.diff(due, 'hours').hours > 24) continue
 
     for (const c of db.allContacts()) {
-      if (c.optedOut || c.sent[msg.id]) continue
+      if (c.optedOut || c.noWhatsapp || c.sent[msg.id]) continue
       // A late registrant joins the sequence where it currently stands: M1 on registration,
       // then only the messages that fall due afterwards. Anything already past is skipped
       // permanently, never delivered late and never as a backlog burst.
@@ -53,7 +53,7 @@ export function runScheduler() {
 /** Instant M1 on registration — highest priority, still throttled. */
 export function enqueueInstant(contact, messageId = 'M1') {
   const msg = BY_ID[messageId]
-  if (!msg || contact.optedOut || contact.sent[messageId]) return null
+  if (!msg || contact.optedOut || contact.noWhatsapp || contact.sent[messageId]) return null
   const body = bodyOf(msg)
   const miss = missingFields(body, contact)
   if (miss.length) {

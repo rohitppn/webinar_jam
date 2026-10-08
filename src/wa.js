@@ -153,15 +153,24 @@ export async function startWhatsApp() {
 export function jidOf(phone) { return `${phone}@s.whatsapp.net` }
 
 /** Does this number have WhatsApp? Returns the canonical jid or null. */
-export async function checkOnWhatsApp(phone) {
-  if (!wa.sock || wa.status !== 'open') return null
+/** Tri-state on purpose. "I could not ask" is not the same as "no account",
+ *  and conflating them marked 900+ perfectly good numbers as undeliverable
+ *  the moment the socket dropped. */
+export async function lookupOnWhatsApp(phone) {
+  if (!wa.sock || wa.status !== 'open') return { state: 'unknown', jid: null }
   try {
     const res = await wa.sock.onWhatsApp(jidOf(phone))
-    const hit = Array.isArray(res) ? res.find((r) => r.exists) : null
-    return hit ? hit.jid : null
+    if (!Array.isArray(res)) return { state: 'unknown', jid: null }
+    const hit = res.find((r) => r.exists)
+    return hit ? { state: 'yes', jid: hit.jid } : { state: 'no', jid: null }
   } catch {
-    return null
+    return { state: 'unknown', jid: null }
   }
+}
+
+export async function checkOnWhatsApp(phone) {
+  const r = await lookupOnWhatsApp(phone)
+  return r.state === 'yes' ? r.jid : null
 }
 
 export async function sendText(phone, body) {
@@ -172,12 +181,17 @@ export async function sendText(phone, body) {
   if (!wa.sock || wa.status !== 'open') throw new Error('WhatsApp not connected')
   // A number with no WhatsApp account silently swallows the message, and the log
   // would then claim it was delivered. Refuse instead, so the operator sees it.
-  const jid = await checkOnWhatsApp(phone)
-  if (!jid) {
+  const look = await lookupOnWhatsApp(phone)
+  if (look.state === 'no') {
     const e = new Error('number is not on WhatsApp')
     e.permanent = true
     throw e
   }
+  if (look.state === 'unknown') {
+    // Could not ask. Transient, so the message waits rather than being written off.
+    throw new Error('could not verify the number right now, will retry')
+  }
+  const jid = look.jid
   if (config.typingSimulation) {
     try {
       await wa.sock.presenceSubscribe(jid)

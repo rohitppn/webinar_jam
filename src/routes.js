@@ -368,6 +368,22 @@ export function buildRoutes() {
   })
   r.post('/api/scheduler/run', (req, res) => res.json(runScheduler()))
 
+  // Clears NO_WHATSAPP flags set while the socket was down, so those contacts
+  // are re-checked against a healthy connection instead of staying written off.
+  r.post('/api/contacts/clear-no-whatsapp', (req, res) => {
+    let n = 0
+    for (const c of db.allContacts()) {
+      if (c.noWhatsapp || (c.tags || []).includes('NO_WHATSAPP')) {
+        c.noWhatsapp = false
+        c.tags = (c.tags || []).filter((t) => t !== 'NO_WHATSAPP')
+        c.notes = (c.notes || '').replace(/\|?\s*number is not on WhatsApp/g, '').trim()
+        n += 1
+      }
+    }
+    save(); logOps('no_whatsapp_cleared', `${n} contacts reset`)
+    res.json({ ok: true, cleared: n })
+  })
+
   // Remove one contact and everything queued for them.
   r.delete('/api/contact/:phone', (req, res) => {
     const phone = normalisePhone(req.params.phone) || req.params.phone

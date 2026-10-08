@@ -35,6 +35,7 @@ export function blockedReason(item) {
 function contactGate(contact, msg) {
   if (!contact) return 'contact missing'
   if (contact.optedOut) return 'opted out'
+  if (contact.noWhatsapp) return 'number is not on WhatsApp'
   if (contact.sent[msg.id]) return 'already sent'
   if (msg.audience && !msg.audience(contact)) return 'no longer in audience'
   const exemptFromDaily = msg.ignoreDailyCapPairing || msg.replyToInbound
@@ -88,10 +89,17 @@ async function tick() {
       logMessage(contact, item.messageId, 'failed', e.message, item.body)
       db.ops('send_failed', `${item.messageId} ${item.phone}: ${e.message}`)
       if (e.permanent && contact) {
-        // Flag the contact so a bad number is visible rather than quietly failing
-        // on every message for the rest of the campaign.
+        // A number with no WhatsApp account will never receive anything, so stop
+        // the whole contact rather than failing every message for two weeks. Without
+        // this the scheduler re-queued the same send every minute, forever.
         contact.tags = [...new Set([...(contact.tags || []), 'NO_WHATSAPP'])]
         contact.notes = (contact.notes ? contact.notes + ' | ' : '') + 'number is not on WhatsApp'
+        contact.noWhatsapp = true
+        for (const q of db.queue) {
+          if (q.phone === contact.phone && q.status === 'pending') {
+            q.status = 'cancelled'; q.error = 'number is not on WhatsApp'
+          }
+        }
         syncContact(contact)
       }
     } else {
