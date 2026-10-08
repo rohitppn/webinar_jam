@@ -242,6 +242,7 @@ export function buildRoutes() {
       if (req.body[k] !== undefined) db.setSetting(k, String(req.body[k]))
     }
     if (req.body.paused !== undefined) db.setSetting('paused', !!req.body.paused)
+    if (Array.isArray(req.body.suppressed)) db.setSetting('suppressed', req.body.suppressed)
     if (req.body.campaignArmed !== undefined) db.setSetting('campaignArmed', !!req.body.campaignArmed)
     save()
     logOps('settings_changed', JSON.stringify(req.body))
@@ -370,6 +371,24 @@ export function buildRoutes() {
 
   // Clears NO_WHATSAPP flags set while the socket was down, so those contacts
   // are re-checked against a healthy connection instead of staying written off.
+  // Cancel every pending copy of a message and stop it being queued again.
+  r.post('/api/messages/:id/suppress', (req, res) => {
+    const id = req.params.id
+    db.setSetting('suppressed', [...new Set([...(db.settings.suppressed || []), id])])
+    let cancelled = 0
+    for (const q of db.queue) {
+      if (q.status === 'pending' && q.messageId === id) {
+        q.status = 'cancelled'; q.error = 'suppressed by operator'; cancelled += 1
+      }
+    }
+    save(); logOps('message_suppressed', `${id}, ${cancelled} cancelled`)
+    res.json({ ok: true, id, cancelled, suppressed: db.settings.suppressed })
+  })
+  r.post('/api/messages/:id/unsuppress', (req, res) => {
+    db.setSetting('suppressed', (db.settings.suppressed || []).filter((x) => x !== req.params.id))
+    save(); res.json({ ok: true, suppressed: db.settings.suppressed })
+  })
+
   r.post('/api/contacts/clear-no-whatsapp', (req, res) => {
     let n = 0
     for (const c of db.allContacts()) {

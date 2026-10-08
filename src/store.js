@@ -15,6 +15,7 @@ const EMPTY = {
     one_line_action: '',
     next_masterclass: '',
     paused: false,
+    suppressed: [],   // message ids the scheduler must not queue this cycle
     campaignArmed: true
   },
   counters: { day: null, sentToday: 0, burstCount: 0, restUntil: null },

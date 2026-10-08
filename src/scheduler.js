@@ -12,7 +12,9 @@ export function runScheduler() {
   let enqueued = 0
   const notes = []
 
+  const suppressed = new Set(db.settings.suppressed || [])
   for (const msg of SCHEDULED) {
+    if (suppressed.has(msg.id)) continue   // deliberately skipped for this run
     const due = sendTimeFor(msg)
     if (due > t) continue
     // Don't fire messages that became due more than 24h ago (e.g. after a long outage).
