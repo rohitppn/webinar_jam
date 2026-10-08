@@ -72,14 +72,17 @@ Four things on Friday: the top 1% profile, the flirt texting framework, styling,
 If you haven't replied *CONFIRMED* yet, do it now so your seat isn't released. Your join link comes here tomorrow morning.`
   },
   {
-    id: 'M7', label: 'Fri 18 Sep, 7:00 PM (replied contacts only)', trigger: 'scheduled', at: -120, priority: 2,
-    audience: AUDIENCE.replied,
+    id: 'M7', label: 'Fri, 7:00 PM — the join link', trigger: 'scheduled', at: -120, priority: 2,
+    // The document limits this to contacts who replied, to protect the number.
+    // With no inbound replies at all, that rule would send the link to nobody,
+    // so it goes to every active contact instead. Changed on Arunav's call.
+    audience: AUDIENCE.all,
     body: `Two hours, {first_name}. Join link: {join_link}
 
 Be seated alone for the hour, earphones in, something to take notes on. I start at 9 sharp.`
   },
   {
-    id: 'M8', label: 'Fri 18 Sep, 8:55 PM', trigger: 'scheduled', at: -5, priority: 1,
+    id: 'M8', label: 'Fri, 8:55 PM — starting now', trigger: 'scheduled', at: -5, priority: 1,
     audience: AUDIENCE.gotM7,
     body: `Starting now. {join_link}`
   },
